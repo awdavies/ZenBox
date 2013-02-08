@@ -64,7 +64,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener, CvCamer
 	}; 
 
 	private Mat mRgba;
-	private Mat mRgbaRot;
 
 	public ZenBoxActivity() {
 		Log.i(TAG, "Instantiated new " + this.getClass());
