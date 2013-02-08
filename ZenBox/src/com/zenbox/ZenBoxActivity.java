@@ -161,6 +161,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 
 	@Override
 	public void onCameraViewStopped() {
+		// TODO: Turn off the sounds!
 		mRgba.release();
 	}
 
