@@ -41,6 +41,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener, CvCamer
 	private Scalar mBlobColorHSV;
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
+	private Scalar RECT_COLOR;
 	
 
 	// need this callback in order to enable the openCV camera
@@ -63,6 +64,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener, CvCamer
 	}; 
 
 	private Mat mRgba;
+	private Mat mRgbaRot;
 
 	public ZenBoxActivity() {
 		Log.i(TAG, "Instantiated new " + this.getClass());
@@ -97,6 +99,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener, CvCamer
         mBlobColorHSV = new Scalar(255);
         SPECTRUM_SIZE = new Size(200, 64);
         CONTOUR_COLOR = new Scalar(255,0,255,255);
+        RECT_COLOR = new Scalar(255, 0, 0, 255);
 		
 		
 		// mIntermediateMat = new Mat(height, width, CvType.CV_8UC4);
@@ -162,11 +165,16 @@ public class ZenBoxActivity extends Activity implements OnTouchListener, CvCamer
 	@Override
 	public Mat onCameraFrame(Mat inputFrame) {
 		 inputFrame.copyTo(mRgba);
-		 
+	
 		 mObjDetector.process(mRgba);
 		 List<MatOfPoint> contours = mObjDetector.getContours();
 		 Log.e(TAG, "Contours count: " + contours.size());
 		 Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+		 for (MatOfPoint contour : contours) {
+			 Rect boundingRect = Imgproc.boundingRect(contour);
+			 Core.rectangle(mRgba, boundingRect.tl(), boundingRect.br(), 
+					 RECT_COLOR);
+		 }
 		 
 		 // These just show up in the corner of the screen (I think). And show the color
 		 // of the selected point.
