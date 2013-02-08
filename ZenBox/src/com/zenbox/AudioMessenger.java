@@ -23,7 +23,7 @@ import android.util.Log;
  * @author brucec5
  *
  */
-public class AudioMessenger extends Activity {
+public class AudioMessenger {
 	private static final String TAG = "ZenBox::AudioMessenger";
 	
 	private static AudioMessenger messenger = null;
@@ -32,7 +32,10 @@ public class AudioMessenger extends Activity {
 	
 	private final ServiceConnection connection;
 	
-	private AudioMessenger() {
+	private Activity act; 
+	
+	private AudioMessenger(Activity act) {
+		this.act = act;
 		connection = new ServiceConnection() {
 			@Override
 			public void onServiceConnected(ComponentName name, IBinder svc) {
@@ -46,8 +49,8 @@ public class AudioMessenger extends Activity {
 			}
 		};
 		
-		bindService(new Intent(this, PdService.class),
-				connection, BIND_AUTO_CREATE);
+		act.bindService(new Intent(act, PdService.class),
+				connection, Activity.BIND_AUTO_CREATE);
 	}
 	
 	/**
@@ -55,9 +58,9 @@ public class AudioMessenger extends Activity {
 	 * 
 	 * @return		the AudioMessenger instance 
 	 */
-	public static AudioMessenger getInstance() {
+	public static AudioMessenger getInstance(Activity act) {
 		if (messenger == null) {
-			messenger = new AudioMessenger();
+			messenger = new AudioMessenger(act);
 		}
 		return messenger;
 	}
@@ -108,7 +111,7 @@ public class AudioMessenger extends Activity {
 	}
 	
 	private void initPd() {
-		Resources res = getResources();
+		Resources res = act.getResources();
 		File patch = null, audio = null;
 		
 		try {
@@ -117,8 +120,8 @@ public class AudioMessenger extends Activity {
 			InputStream inp = res.openRawResource(R.raw.synth);
 			InputStream ina = res.openRawResource(R.raw.icke);
 			
-			patch = IoUtils.extractResource(inp, "synth.pd", getCacheDir());
-			audio = IoUtils.extractResource(ina, "icke.wav", getCacheDir());
+			patch = IoUtils.extractResource(inp, "synth.pd", act.getCacheDir());
+			audio = IoUtils.extractResource(ina, "icke.wav", act.getCacheDir());
 			
 			PdBase.openPatch(patch);
 			
@@ -126,7 +129,7 @@ public class AudioMessenger extends Activity {
 			
 			// -1 means use default, which should work for us.
 			pdService.initAudio(-1, -1, -1, -1);
-			pdService.startAudio(new Intent(this, ZenBoxActivity.class),
+			pdService.startAudio(new Intent(act, ZenBoxActivity.class),
 					R.drawable.icon, name, name);
 		} catch (IOException e) {
 			Log.e(TAG, e.toString());
@@ -136,5 +139,9 @@ public class AudioMessenger extends Activity {
 			if (audio != null)
 				patch.delete();
 		}
+	}
+	
+	public static float normalize(float in, float oMax, float oMin, float inMax) {
+		return oMin + in * (oMax - oMin) / inMax;
 	}
 }
