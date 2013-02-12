@@ -1,5 +1,6 @@
 package com.zenbox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -46,6 +47,9 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
 	private Scalar RECT_COLOR;
+	
+	// The audio manager member.
+	private AudioMessenger mAudioMsgr;
 
 	// need this callback in order to enable the openCV camera
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -97,14 +101,13 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// CV_MAX_CN channels) matrices.
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
 		mObjDetector = new BlobDetector();
+		mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
 		mSpectrum = new Mat();
 		mBlobColorRGBA = new Scalar(255);
 		mBlobColorHSV = new Scalar(255);
 		SPECTRUM_SIZE = new Size(200, 64);
 		CONTOUR_COLOR = new Scalar(255, 0, 255, 255);
 		RECT_COLOR = new Scalar(255, 0, 0, 255);
-
-		// mIntermediateMat = new Mat(height, width, CvType.CV_8UC4);
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
@@ -175,33 +178,18 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	 */
 	@Override
 	public Mat onCameraFrame(Mat inputFrame) {
-		AudioMessenger msgr = AudioMessenger.getInstance(this);
-		JavaCameraView v = (JavaCameraView) findViewById(R.id.activity_zen_box_view);
-		
+		// Grab a frame and process it with the object detector.
 		inputFrame.copyTo(mRgba);
 		mObjDetector.process(mRgba);
-		
 		List<MatOfPoint> contours = mObjDetector.getContours();
 		Log.i(TAG, "Contours count: " + contours.size());
 		Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
 		
-		Rect biggestRect = null;
-		
-		for (MatOfPoint contour : contours) {
-			Rect boundingRect = Imgproc.boundingRect(contour);
-			
-			if (biggestRect == null || boundingRect.area() > biggestRect.area())
-				biggestRect = boundingRect;
-			
-			Core.rectangle(mRgba, boundingRect.tl(), boundingRect.br(), 
-				 RECT_COLOR);
-		}
-		
-		float x, y;
-		if (biggestRect != null) {
-			x = AudioMessenger.normalize(biggestRect.x + biggestRect.width / 2, 0.5f, 1.5f, v.getWidth());
-			y = AudioMessenger.normalize(biggestRect.y + biggestRect.height / 2, 0.3f, 0.8f, v.getHeight());
-			msgr.sendList("change", x, y);
+		// This is a simple implementation of tracking the bounding shapes.
+		// For now only one sound is played for a single rectangle on the screen.
+		if (contours.size() > 0) {
+			List<Rect> rectangles = this.createBoundingShapes(contours);
+			this.playRectangleSound(rectangles.get(0));
 		}
 		
 		// These just show up in the corner of the screen (I think). And show the color
@@ -213,6 +201,37 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		mSpectrum.copyTo(spectrumLabel);
 		 
 		return mRgba;
+	}
+	
+	/**
+	 * Draws the bounding rectangles around all of the passed contours.  Draws the the main image
+	 * member "mRgba."
+	 * @param contours  The list of contours.
+	 * @return A list of the boundingRectangles created on the screen.
+	 */
+	private List<Rect> createBoundingShapes(List<MatOfPoint> contours) {
+		List<Rect> boundingRectangles = new ArrayList<Rect>(contours.size());
+		for (int i = 0; i < contours.size(); ++i) {
+			Rect boundingRect = Imgproc.boundingRect(contours.get(i));
+			boundingRectangles.add(boundingRect);
+			Core.rectangle(mRgba, boundingRect.tl(), boundingRect.br(),
+					RECT_COLOR);
+		}
+		return boundingRectangles;
+	}
+	
+	/**
+	 * Plays a sound according to some bounding rectangle on the screen.  The method
+	 * is currently a bit ad-lib, so just passing a single rectangle per frame should create
+	 * a steady sound.
+	 */
+	private void playRectangleSound(Rect rectangle) {
+		if (rectangle != null) {
+			JavaCameraView v = (JavaCameraView) findViewById(R.id.activity_zen_box_view);
+			float x = AudioMessenger.normalize(rectangle.x + rectangle.width / 2, 0.5f, 1.5f, v.getWidth());
+			float y = AudioMessenger.normalize(rectangle.y + rectangle.height / 2, 0.3f, 0.8f, v.getHeight());
+			mAudioMsgr.sendList("change", x, y);
+		}
 	}
 
 	@Override
