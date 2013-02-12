@@ -45,7 +45,7 @@ public class AudioMessenger {
 		
 			@Override
 			public void onServiceDisconnected(ComponentName name) {
-				// Never run or so I am told (required for interface)
+				// Never run, or so I am told (required for interface)
 			}
 		};
 		
@@ -108,6 +108,19 @@ public class AudioMessenger {
 	 */
 	public int sendMessage(String recv, String msg, Object... args) {
 		return PdBase.sendMessage(recv, msg, args);
+	}
+	
+	/**
+	 * Cleans up the audio messenger.  To be called upon exiting the activity.
+	 */
+	public void cleanup() {
+		try {
+			act.unbindService(connection);
+			messenger = null;
+		} catch (IllegalArgumentException e) {
+			// already unbound
+			pdService = null;
+		}
 	}
 	
 	private void initPd() {

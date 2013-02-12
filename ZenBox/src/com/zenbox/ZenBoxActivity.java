@@ -86,6 +86,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.activity_zen_box_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
+		AudioMessenger.getInstance(this); // should start the sound up
 	}
 
 	@Override
@@ -181,7 +182,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		mObjDetector.process(mRgba);
 		
 		List<MatOfPoint> contours = mObjDetector.getContours();
-		Log.e(TAG, "Contours count: " + contours.size());
+		Log.i(TAG, "Contours count: " + contours.size());
 		Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
 		
 		Rect biggestRect = null;
@@ -235,6 +236,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		super.onDestroy();
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
+		AudioMessenger.getInstance(this).cleanup();
 	}
 
 	private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
