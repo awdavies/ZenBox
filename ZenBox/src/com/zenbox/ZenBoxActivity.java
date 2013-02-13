@@ -76,6 +76,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			case LoaderCallbackInterface.SUCCESS: {
 				Log.i(TAG, "ZenBox loaded successfully");
 				mOpenCvCameraView.enableView();
+				mOpenCvCameraView.setMaxFrameSize(640, 480);
 				mOpenCvCameraView.setOnTouchListener(ZenBoxActivity.this);
 			}
 				break;
@@ -231,11 +232,11 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		
 		// These just show up in the corner of the screen (I think). And show the color
 		// of the selected point.
-		Mat colorLabel = mRgba.submat(4, 68, 4, 68);
-		colorLabel.setTo(mBlobColorRGBA);
-		 
-		Mat spectrumLabel = mRgba.submat(4,  4+ mSpectrum.rows(), 70, 70 + mSpectrum.cols());
-		mSpectrum.copyTo(spectrumLabel);
+//		Mat colorLabel = mRgba.submat(4, 68, 4, 68);
+//		colorLabel.setTo(mBlobColorRGBA);
+//		 
+//		Mat spectrumLabel = mRgba.submat(4,  4+ mSpectrum.rows(), 70, 70 + mSpectrum.cols());
+//		mSpectrum.copyTo(spectrumLabel);
 		 
 		return mRgba;
 	}
