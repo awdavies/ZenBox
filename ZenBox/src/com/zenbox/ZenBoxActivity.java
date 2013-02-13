@@ -202,7 +202,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 
 	@Override
 	public void onCameraViewStopped() {
-		// TODO: Turn off the sounds!
 		mRgba.release();
 	}
 
@@ -232,11 +231,11 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		
 		// These just show up in the corner of the screen (I think). And show the color
 		// of the selected point.
-//		Mat colorLabel = mRgba.submat(4, 68, 4, 68);
-//		colorLabel.setTo(mBlobColorRGBA);
-//		 
-//		Mat spectrumLabel = mRgba.submat(4,  4+ mSpectrum.rows(), 70, 70 + mSpectrum.cols());
-//		mSpectrum.copyTo(spectrumLabel);
+		//		Mat colorLabel = mRgba.submat(4, 68, 4, 68);
+		//		colorLabel.setTo(mBlobColorRGBA);
+		//		 
+		//		Mat spectrumLabel = mRgba.submat(4,  4+ mSpectrum.rows(), 70, 70 + mSpectrum.cols());
+		//		mSpectrum.copyTo(spectrumLabel);
 		 
 		return mRgba;
 	}
@@ -249,9 +248,9 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	private void drawRGBHist(Mat inputFrame) {
 		// Draw RGB Histogram.
 		Size rgbaSize = mRgba.size();
-		int thickness = (int) (rgbaSize.width / (mHistSizeNum + 10) / 5);
-		int offset = (int) ((rgbaSize.width - (5 * mHistSizeNum + 4 * 10) * thickness) / 2);
-        if(thickness > 5) 
+		int thickness = (int) (rgbaSize.height / (mHistSizeNum + 10) / 5);
+		int offset = (int) (rgbaSize.height);
+        if(thickness > 5)
         	thickness = 5;
 		for (int i = 0; i < 3; ++i) {
 			// Calculate hist from input frame so as to avoid handling other input.
@@ -259,9 +258,9 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			Core.normalize(mHist, mHist, rgbaSize.height/2, 0, Core.NORM_INF);
 			mHist.get(0, 0, mBuf);
 			for(int j = 0; j < mHistSizeNum; ++j) {
-                mP1.x = mP2.x = offset + (i * (mHistSizeNum + 10) + j) * thickness;
-                mP1.y = rgbaSize.height-1;
-                mP2.y = mP1.y - 2 - (int) mBuf[j];
+                mP1.y = mP2.y = offset - (i * (mHistSizeNum + 10) + j) * thickness;
+                mP1.x = rgbaSize.width-1;
+                mP2.x = mP1.x - 2 - (int) mBuf[j];
                 Core.line(mRgba, mP1, mP2, mColorsRGB[i], thickness);
             }
 		}
@@ -319,7 +318,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		super.onDestroy();
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
-		AudioMessenger.getInstance(this).cleanup();
+		mAudioMsgr.cleanup();
 	}
 
 	private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
@@ -327,7 +326,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
 		Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL,
 				4);
-
 		return new Scalar(pointMatRgba.get(0, 0));
 	}
 
