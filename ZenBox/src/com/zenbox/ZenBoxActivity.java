@@ -202,7 +202,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 
 	@Override
 	public void onCameraViewStopped() {
-		// TODO: Turn off the sounds!
 		mRgba.release();
 	}
 
@@ -232,11 +231,11 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		
 		// These just show up in the corner of the screen (I think). And show the color
 		// of the selected point.
-//		Mat colorLabel = mRgba.submat(4, 68, 4, 68);
-//		colorLabel.setTo(mBlobColorRGBA);
-//		 
-//		Mat spectrumLabel = mRgba.submat(4,  4+ mSpectrum.rows(), 70, 70 + mSpectrum.cols());
-//		mSpectrum.copyTo(spectrumLabel);
+		//		Mat colorLabel = mRgba.submat(4, 68, 4, 68);
+		//		colorLabel.setTo(mBlobColorRGBA);
+		//		 
+		//		Mat spectrumLabel = mRgba.submat(4,  4+ mSpectrum.rows(), 70, 70 + mSpectrum.cols());
+		//		mSpectrum.copyTo(spectrumLabel);
 		 
 		return mRgba;
 	}
@@ -319,7 +318,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		super.onDestroy();
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
-		AudioMessenger.getInstance(this).cleanup();
+		mAudioMsgr.cleanup();
 	}
 
 	private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
@@ -327,7 +326,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
 		Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL,
 				4);
-
 		return new Scalar(pointMatRgba.get(0, 0));
 	}
 
