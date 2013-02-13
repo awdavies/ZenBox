@@ -125,15 +125,17 @@ public class AudioMessenger {
 	
 	private void initPd() {
 		Resources res = act.getResources();
-		File patch = null, audio = null;
+		File patch = null, synth = null, audio = null;
 		
 		try {
 			PdBase.subscribe("android");
 			
+			InputStream inm = res.openRawResource(R.raw.main);
 			InputStream inp = res.openRawResource(R.raw.synth);
 			InputStream ina = res.openRawResource(R.raw.icke);
 			
-			patch = IoUtils.extractResource(inp, "synth.pd", act.getCacheDir());
+			patch = IoUtils.extractResource(inm, "main.pd", act.getCacheDir());
+			synth = IoUtils.extractResource(inp, "synth.pd", act.getCacheDir());
 			audio = IoUtils.extractResource(ina, "icke.wav", act.getCacheDir());
 			
 			PdBase.openPatch(patch);
@@ -149,8 +151,10 @@ public class AudioMessenger {
 		} finally {
 			if (patch != null)
 				patch.delete();
+			if (synth != null)
+				synth.delete();
 			if (audio != null)
-				patch.delete();
+				audio.delete();
 		}
 	}
 	

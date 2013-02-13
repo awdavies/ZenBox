@@ -202,7 +202,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		if (biggestRect != null) {
 			x = AudioMessenger.normalize(biggestRect.x + biggestRect.width / 2, 0.5f, 1.5f, v.getWidth());
 			y = AudioMessenger.normalize(biggestRect.y + biggestRect.height / 2, 0.2f, 0.8f, v.getHeight());
-			msgr.sendList("change", x, y);
+			msgr.sendMessage("change", "a", x, y);
 		}
 		
 		// These just show up in the corner of the screen (I think). And show the color
