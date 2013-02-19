@@ -130,7 +130,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// Init histogram members.
 		mP1 = new Point();
 		mP2 = new Point();
-		mHistSizeNum = 6;
+		mHistSizeNum = 25;
 		mHist = new  Mat();
 		mHistSize = new MatOfInt(mHistSizeNum);
 		mMat0 = new Mat();
@@ -247,23 +247,35 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	 */
 	private void drawRGBHist(Mat inputFrame) {
 		// Draw RGB Histogram.
-		Size rgbaSize = mRgba.size();
-		int thickness = (int) (rgbaSize.height / (mHistSizeNum + 10) / 5);
-		int offset = (int) (rgbaSize.height);
-        if(thickness > 5)
-        	thickness = 5;
-		for (int i = 0; i < 3; ++i) {
-			// Calculate hist from input frame so as to avoid handling other input.
-			Imgproc.calcHist(Arrays.asList(inputFrame), mChannels[i], mMat0, mHist, mHistSize, mRanges);
-			Core.normalize(mHist, mHist, rgbaSize.height/2, 0, Core.NORM_INF);
-			mHist.get(0, 0, mBuf);
-			for(int j = 0; j < mHistSizeNum; ++j) {
-                mP1.y = mP2.y = offset - (i * (mHistSizeNum + 10) + j) * thickness;
-                mP1.x = rgbaSize.width-1;
-                mP2.x = mP1.x - 2 - (int) mBuf[j];
-                Core.line(mRgba, mP1, mP2, mColorsRGB[i], thickness);
-            }
-		}
+//		Size rgbaSize = mRgba.size();
+		double[] val = Core.mean(inputFrame).val;
+		
+		float grainstart = AudioMessenger.normalize((float)val[0], 1.0f, 0.0f, 255.0f);
+		float graindur = AudioMessenger.normalize((float)val[1], 2000.0f, 10.0f, 255.0f);
+		float grainpitch = AudioMessenger.normalize((float)val[2], 2.0f, 0.0f, 255.0f);
+		
+		mAudioMsgr.sendFloat("grainstart_in", grainstart);
+		mAudioMsgr.sendFloat("graindur_in", graindur);
+		mAudioMsgr.sendFloat("grainpitch_in", grainpitch);
+		Log.e("GranAudioValues", Double.toString(grainstart) + "\t" + Double.toString(graindur) + "\t" + Double.toString(grainpitch));
+//		int thickness = (int) (rgbaSize.height / (mHistSizeNum + 10) / 5);
+//		int offset = (int) (rgbaSize.height);
+//        if(thickness > 5)
+//        	thickness = 5;
+//		for (int i = 0; i < 3; ++i) {
+//			// Calculate hist from input frame so as to avoid handling other input.
+////			Imgproc.calcHist(Arrays.asList(inputFrame), mChannels[i], mMat0, mHist, mHistSize, mRanges);
+//
+//			Log.e("imageMean " + i, Double.toString(val.val[i]));
+////			Core.normalize(mHist, mHist, rgbaSize.height/2, 0, Core.NORM_INF);
+////			mHist.get(0, 0, mBuf);
+////			for(int j = 0; j < mHistSizeNum; ++j) {
+////                mP1.y = mP2.y = offset - (i * (mHistSizeNum + 10) + j) * thickness;
+////                mP1.x = rgbaSize.width-1;
+////                mP2.x = mP1.x - 2 - (int) mBuf[j];
+////                Core.line(mRgba, mP1, mP2, mColorsRGB[i], thickness);
+////            }
+//		}
 	}
 	
 	/**
