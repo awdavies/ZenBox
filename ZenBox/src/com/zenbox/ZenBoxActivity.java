@@ -21,6 +21,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.highgui.VideoCapture;
 import org.opencv.imgproc.Imgproc;
 
 import android.os.Bundle;
@@ -74,7 +75,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		public void onManagerConnected(int status) {
 			switch (status) {
 			case LoaderCallbackInterface.SUCCESS: {
-				Log.i(TAG, "ZenBox loaded successfully");
+				Log.e(TAG, "ZenBox loaded successfully");
 				mOpenCvCameraView.enableView();
 				mOpenCvCameraView.setMaxFrameSize(640, 480);
 				mOpenCvCameraView.setOnTouchListener(ZenBoxActivity.this);
@@ -108,7 +109,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.activity_zen_box_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
-		AudioMessenger.getInstance(this); // should start the sound up
+		mAudioMsgr = AudioMessenger.getInstance(this); // should start the sound up
 	}
 
 	@Override
@@ -119,7 +120,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// CV_MAX_CN channels) matrices.
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
 		mObjDetector = new BlobDetector();
-		mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
+		//mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
 		mSpectrum = new Mat();
 		mBlobColorRGBA = new Scalar(255);
 		mBlobColorHSV = new Scalar(255);
@@ -252,12 +253,12 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		
 		float grainstart = AudioMessenger.normalize((float)val[0], 1.0f, 0.0f, 255.0f);
 		float graindur = AudioMessenger.normalize((float)val[1], 2000.0f, 10.0f, 255.0f);
-		float grainpitch = AudioMessenger.normalize((float)val[2], 2.0f, 0.0f, 255.0f);
+		float grainpitch = AudioMessenger.normalize((float)val[2], 2.0f, 0.3f, 255.0f);
 		
 		mAudioMsgr.sendFloat("grainstart_in", grainstart);
 		mAudioMsgr.sendFloat("graindur_in", graindur);
 		mAudioMsgr.sendFloat("grainpitch_in", grainpitch);
-		Log.e("GranAudioValues", Double.toString(grainstart) + "\t" + Double.toString(graindur) + "\t" + Double.toString(grainpitch));
+		//Log.e("GranAudioValues", Double.toString(grainstart) + "\t" + Double.toString(graindur) + "\t" + Double.toString(grainpitch));
 //		int thickness = (int) (rgbaSize.height / (mHistSizeNum + 10) / 5);
 //		int offset = (int) (rgbaSize.height);
 //        if(thickness > 5)
@@ -314,6 +315,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
 		super.onPause();
+		mAudioMsgr.cleanup();
 	}
 
 	@Override
@@ -323,6 +325,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// camera
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
 				mLoaderCallback);
+		mAudioMsgr = AudioMessenger.getInstance(this);
 	}
 
 	@Override

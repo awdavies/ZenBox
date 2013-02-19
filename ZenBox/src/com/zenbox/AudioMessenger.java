@@ -114,7 +114,9 @@ public class AudioMessenger {
 	 * Cleans up the audio messenger.  To be called upon exiting the activity.
 	 */
 	public void cleanup() {
+		Log.e("ZenBox::AudioMessenger", "We're cleaning up!");
 		try {
+			pdService.stopAudio();
 			act.unbindService(connection);
 			messenger = null;
 		} catch (IllegalArgumentException e) {
@@ -125,7 +127,7 @@ public class AudioMessenger {
 	
 	private void initPd() {
 		Resources res = act.getResources();
-		File patch = null, synth = null, audio = null;
+		File patch = null, synth = null, audio = null, reverb = null;
 		
 		try {
 			PdBase.subscribe("android");
@@ -133,10 +135,12 @@ public class AudioMessenger {
 			InputStream inm = res.openRawResource(R.raw.grain);
 			InputStream inp = res.openRawResource(R.raw.grainvoice);
 			InputStream ina = res.openRawResource(R.raw.vowels2);
+			InputStream inr = res.openRawResource(R.raw.simplereverb);
 			
 			patch = IoUtils.extractResource(inm, "grain.pd", act.getCacheDir());
 			synth = IoUtils.extractResource(inp, "grainvoice.pd", act.getCacheDir());
 			audio = IoUtils.extractResource(ina, "vowels2.wav", act.getCacheDir());
+			reverb = IoUtils.extractResource(inr, "simplereverb.pd", act.getCacheDir());
 			
 			PdBase.openPatch(patch);
 			
@@ -155,6 +159,8 @@ public class AudioMessenger {
 				synth.delete();
 			if (audio != null)
 				audio.delete();
+			if (reverb != null)
+				reverb.delete();
 		}
 	}
 	
