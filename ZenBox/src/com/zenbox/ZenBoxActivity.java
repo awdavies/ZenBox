@@ -268,7 +268,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	 * As of current, this detector uses the ORB feature detector.
 	 * @param inputFrame
 	 */
-	
 	private void drawFeatures(Mat inputFrame) {		
 		// Create gray image for feature detection.
         Imgproc.cvtColor(inputFrame, mGray, Imgproc.COLOR_RGBA2GRAY);
