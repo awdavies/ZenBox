@@ -16,11 +16,14 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.features2d.FeatureDetector;
+import org.opencv.features2d.KeyPoint;
 import org.opencv.imgproc.Imgproc;
 
 import android.os.Bundle;
@@ -51,6 +54,8 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
 	private Scalar RECT_COLOR;
+	private int FEATURE_CIRCLE_RADIUS;
+	private Scalar FEATURE_COLOR;
 	
 	// Members for handling histogram calculation.
 	private MatOfInt[] mChannels;
@@ -65,8 +70,18 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	private Scalar[] mColorsRGB;
 	private Scalar[] mColorsHue;
 	
+	// Feature detector.
+	private FeatureDetector mFeatureDetector;
+	private MatOfKeyPoint mFeatures;
+	
 	// The audio manager member.
 	private AudioMessenger mAudioMsgr;
+	
+	// The main Rgba matrix.
+	private Mat mRgba;
+	
+	// An intermediate grayscale matrix meant for mRgba.
+	private Mat mGray;
 
 	// need this callback in order to enable the openCV camera
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -87,8 +102,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			}
 		}
 	};
-
-	private Mat mRgba;
 
 	public ZenBoxActivity() {
 		Log.i(TAG, "Instantiated new " + this.getClass());
@@ -118,6 +131,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// matrices, or CV_8UC(n),..., CV_64FC(n) to create multi-channel (up to
 		// CV_MAX_CN channels) matrices.
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
+		mGray = new Mat(height, width, CvType.CV_8UC4);
 		mObjDetector = new BlobDetector();
 		mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
 		mSpectrum = new Mat();
@@ -145,6 +159,12 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
                 new Scalar(0, 120, 255, 255), new Scalar(0, 60, 255, 255),  new Scalar(0, 0, 255, 255),   new Scalar(64, 0, 255, 255),  new Scalar(120, 0, 255, 255),
                 new Scalar(180, 0, 255, 255), new Scalar(255, 0, 255, 255), new Scalar(255, 0, 215, 255), new Scalar(255, 0, 85, 255),  new Scalar(255, 0, 0, 255)
         };
+        
+        // Create an orb feature detector.
+        mFeatureDetector = FeatureDetector.create(FeatureDetector.FAST);
+        mFeatures = new MatOfKeyPoint();
+        FEATURE_CIRCLE_RADIUS = 1;
+        FEATURE_COLOR = new Scalar(255, 255, 255, 255);
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
@@ -216,6 +236,8 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	public Mat onCameraFrame(Mat inputFrame) {
 		// Grab a frame and process it with the object detector.
 		inputFrame.copyTo(mRgba);
+		
+		// Detect objects.
 		mObjDetector.process(mRgba);
 		List<MatOfPoint> contours = mObjDetector.getContours();
 		Log.i(TAG, "Contours count: " + contours.size());
@@ -228,6 +250,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			this.playRectangleSound(rectangles.get(0));
 		}
 		this.drawRGBHist(inputFrame);
+		this.drawFeatures(inputFrame);
 		
 		// These just show up in the corner of the screen (I think). And show the color
 		// of the selected point.
@@ -238,6 +261,21 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		//		mSpectrum.copyTo(spectrumLabel);
 		 
 		return mRgba;
+	}
+	
+	/**
+	 * Detects and draws the features found in the input frame using the mFeatureDetectorOrb member.
+	 * As of current, this detector uses the ORB feature detector.
+	 * @param inputFrame
+	 */
+	private void drawFeatures(Mat inputFrame) {		
+		// Create gray image for feature detection.
+        Imgproc.cvtColor(inputFrame, mGray, Imgproc.COLOR_RGBA2GRAY);
+		mFeatureDetector.detect(mGray, mFeatures);
+		KeyPoint[] points = mFeatures.toArray();  // TODO: This might be slow. Check under profiler.
+		for (KeyPoint kp : points) {
+			Core.circle(mRgba, kp.pt, FEATURE_CIRCLE_RADIUS, FEATURE_COLOR);
+		}
 	}
 	
 	/**
