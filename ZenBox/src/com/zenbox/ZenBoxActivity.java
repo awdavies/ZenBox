@@ -68,7 +68,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	private Scalar[] mColorsRGB;
 	private Scalar[] mColorsHue;
 	
-	// Feature detector.	
+	// Feature detector.
 	private FeatureDetector mFeatureDetector;
 	private MatOfKeyPoint mFeatures;
 	
@@ -78,7 +78,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	// The main Rgba matrix.
 	private Mat mRgba;
 	
-	// An intermediate grayscale matrix meant for mRgba
+	// An intermediate grayscale matrix meant for mRgba.
 	private Mat mGray;
 
 	// need this callback in order to enable the openCV camera
