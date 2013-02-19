@@ -130,13 +130,13 @@ public class AudioMessenger {
 		try {
 			PdBase.subscribe("android");
 			
-			InputStream inm = res.openRawResource(R.raw.main);
-			InputStream inp = res.openRawResource(R.raw.synth);
-			InputStream ina = res.openRawResource(R.raw.icke);
+			InputStream inm = res.openRawResource(R.raw.grain);
+			InputStream inp = res.openRawResource(R.raw.grainvoice);
+			InputStream ina = res.openRawResource(R.raw.vowels2);
 			
-			patch = IoUtils.extractResource(inm, "main.pd", act.getCacheDir());
-			synth = IoUtils.extractResource(inp, "synth.pd", act.getCacheDir());
-			audio = IoUtils.extractResource(ina, "icke.wav", act.getCacheDir());
+			patch = IoUtils.extractResource(inm, "grain.pd", act.getCacheDir());
+			synth = IoUtils.extractResource(inp, "grainvoice.pd", act.getCacheDir());
+			audio = IoUtils.extractResource(ina, "vowels2.wav", act.getCacheDir());
 			
 			PdBase.openPatch(patch);
 			

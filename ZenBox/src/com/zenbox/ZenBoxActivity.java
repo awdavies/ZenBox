@@ -130,7 +130,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// Init histogram members.
 		mP1 = new Point();
 		mP2 = new Point();
-		mHistSizeNum = 25;
+		mHistSizeNum = 6;
 		mHist = new  Mat();
 		mHistSize = new MatOfInt(mHistSizeNum);
 		mMat0 = new Mat();
@@ -216,17 +216,17 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	public Mat onCameraFrame(Mat inputFrame) {
 		// Grab a frame and process it with the object detector.
 		inputFrame.copyTo(mRgba);
-		mObjDetector.process(mRgba);
-		List<MatOfPoint> contours = mObjDetector.getContours();
-		Log.i(TAG, "Contours count: " + contours.size());
-		Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-		
-		// This is a simple implementation of tracking the bounding shapes.
-		// For now only one sound is played for a single rectangle on the screen.
-		if (contours.size() > 0) {
-			List<Rect> rectangles = this.createBoundingShapes(contours);
-			this.playRectangleSound(rectangles.get(0));
-		}
+//		mObjDetector.process(mRgba);
+//		List<MatOfPoint> contours = mObjDetector.getContours();
+//		Log.i(TAG, "Contours count: " + contours.size());
+//		Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+//		
+//		// This is a simple implementation of tracking the bounding shapes.
+//		// For now only one sound is played for a single rectangle on the screen.
+//		if (contours.size() > 0) {
+//			List<Rect> rectangles = this.createBoundingShapes(contours);
+//			this.playRectangleSound(rectangles.get(0));
+//		}
 		this.drawRGBHist(inputFrame);
 		
 		// These just show up in the corner of the screen (I think). And show the color
