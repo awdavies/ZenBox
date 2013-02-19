@@ -249,6 +249,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			List<Rect> rectangles = this.createBoundingShapes(contours);
 			this.playRectangleSound(rectangles.get(0));
 		}
+		
 		this.drawFeatures(inputFrame);
 		this.drawRGBHist(inputFrame);
 		
@@ -261,6 +262,20 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		//		mSpectrum.copyTo(spectrumLabel);
 		 
 		return mRgba;
+	}
+	
+	/**
+	 * Detects and assigns a vector to each located feature from the mLastFrame member.  This will be
+	 * used to modulate the sound... somehow.
+	 * 
+	 * @param inputFrame
+	 */
+	private void detectOpticalFlow(Mat inputFrame) {
+		// In here we're going to have the native method call to cvCalcOpticalFlowPyrLK
+		// as outlined in this rockin paper: http://robots.stanford.edu/cs223b05/notes/CS%20223-B%20T1%20stavens_opencv_optical_flow.pdf
+		
+		// TODO: For some reason the includes don't seem to work particularly well.
+		// It doesn't seem to know where to look.
 	}
 	
 	/**

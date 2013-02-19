@@ -32,6 +32,12 @@
 								</outputEntries>
 							</builder>
 							<tool id="com.android.gcc.compiler.740380968" name="Android GCC Compiler" superClass="com.android.gcc.compiler">
+								<option id="com.android.gcc.option.includePath.19452632" superClass="com.android.gcc.option.includePath" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\Android\android-ndk-r8d\platforms\android-9\arch-arm\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Android\android-ndk-r8d\sources\cxx-stl\gnu-libstdc++\4.6\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Android\android-ndk-r8d\sources\cxx-stl\gnu-libstdc++\4.6\libs\armeabi-v7a\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;Z:\eclipse_proj\OpenCV-2.4.3.2-android-sdk\sdk\native\jni\include&quot;"/>
+								</option>
 								<inputType id="com.android.gcc.inputType.1998379815" superClass="com.android.gcc.inputType"/>
 							</tool>
 						</toolChain>
@@ -59,4 +65,5 @@
 			<resource resourceType="PROJECT" workspacePath="/ZenBox"/>
 		</configuration>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 </cproject>
