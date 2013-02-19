@@ -161,9 +161,9 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
         };
         
         // Create an orb feature detector.
-        mFeatureDetector = FeatureDetector.create(FeatureDetector.FAST);
+        mFeatureDetector = FeatureDetector.create(FeatureDetector.ORB);
         mFeatures = new MatOfKeyPoint();
-        FEATURE_CIRCLE_RADIUS = 1;
+        FEATURE_CIRCLE_RADIUS = 4;
         FEATURE_COLOR = new Scalar(255, 255, 255, 255);
 	}
 
@@ -249,8 +249,8 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			List<Rect> rectangles = this.createBoundingShapes(contours);
 			this.playRectangleSound(rectangles.get(0));
 		}
-		this.drawRGBHist(inputFrame);
 		this.drawFeatures(inputFrame);
+		this.drawRGBHist(inputFrame);
 		
 		// These just show up in the corner of the screen (I think). And show the color
 		// of the selected point.
@@ -268,10 +268,11 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	 * As of current, this detector uses the ORB feature detector.
 	 * @param inputFrame
 	 */
+	
 	private void drawFeatures(Mat inputFrame) {		
 		// Create gray image for feature detection.
         Imgproc.cvtColor(inputFrame, mGray, Imgproc.COLOR_RGBA2GRAY);
-		mFeatureDetector.detect(mGray, mFeatures);
+		mFeatureDetector.detect(inputFrame, mFeatures);
 		KeyPoint[] points = mFeatures.toArray();  // TODO: This might be slow. Check under profiler.
 		for (KeyPoint kp : points) {
 			Core.circle(mRgba, kp.pt, FEATURE_CIRCLE_RADIUS, FEATURE_COLOR);
