@@ -37,8 +37,9 @@ extern "C" {
  * detected between frames.  Requires the previous image, as well as the
  * current image (and the features detected from both frames).  Note it is
  * alright to call this function with some null values, as it will simply
- * return not having done anything if any null values have been passed
- * (excepting addrPrevMat, and addrPrevFeat).
+ * return not having done anything if any null values have been passed.
+ * This is because most of the variables in this function are required for
+ * storage.
  *
  * @param addrPrevMat The address of the matrix of the previous frame.
  *
