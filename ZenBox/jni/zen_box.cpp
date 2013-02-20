@@ -21,15 +21,16 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
 	Mat& prevMatGray 		= *(Mat *) addrPrevMatGray;
 
 	// Detect the features of the current array.
-	vector<Point2f> points;
 	cvtColor(curMat, curMatGray, CV_RGBA2GRAY);
 	cvtColor(prevMat, prevMatGray, CV_RGBA2GRAY);
-	goodFeaturesToTrack(prevMatGray, p_buf, 30, 0.01, 0.01);
-	for (uint32_t i = 0; i < p_buf.size(); ++i) {
-		const Point2f& p = p_buf[i];
-		circle(curMat, Point(p.x, p.y), 10, Scalar(255, 255, 255, 255));
+	OrbFeatureDetector detector(MAX_FEATURES);
+	detector.detect(prevMatGray, kp_buf);
+	for (uint32_t i = 0; i < kp_buf.size(); ++i) {
+		const KeyPoint& p = kp_buf[i];
+		circle(curMat, Point(p.pt.x, p.pt.y), 10, Scalar(255, 255, 255, 255));
 	}
 
+	KeyPoint::convert(kp_buf, p_buf);
 	Mat prevFeat(p_buf);
 	calcOpticalFlowPyrLK(prevMatGray, curMatGray, prevFeat, predicted_buf, status, error);
 	for (uint32_t i = 0; i < predicted_buf.size(); ++i) {
