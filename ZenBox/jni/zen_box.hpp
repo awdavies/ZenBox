@@ -24,10 +24,15 @@ using namespace cv;
 const uint16_t MAX_FEATURES = 100;
 const Scalar FEATURE_COLOR = Scalar(255, 255, 255, 255);
 
+static inline void kpVecToPVec(vector<KeyPoint>* in, vector<Point_<float> >* out) {
+	out->clear();
+	for (vector<KeyPoint>::iterator it = in->begin(); it != in->end(); ++it)
+		out->push_back(it->pt);
+}
+
 #ifndef ZEN_BOX_HPP_
 #define ZEN_BOX_HPP_
 
-/* Prototype Definitions. */
 #ifdef __cplusplus   // <--- for name mangling and such.
 extern "C" {
 #endif
