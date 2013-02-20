@@ -35,11 +35,9 @@ extern "C" {
 /**
  * Detects the optical flow of the image, centered on the set of features
  * detected between frames.  Requires the previous image, as well as the
- * current image (and the features detected from both frames).  Note it is
- * alright to call this function with some null values, as it will simply
- * return not having done anything if any null values have been passed.
- * This is because most of the variables in this function are required for
- * storage.
+ * current image (and the features detected from both frames).  Note that
+ * any null or invalid values passed to this function will only cause havoc.
+ * There will be no address checking; you have been warned.
  *
  * @param addrPrevMat The address of the matrix of the previous frame.
  *
