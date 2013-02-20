@@ -9,9 +9,9 @@ using std::vector;
 
 extern "C" {
 
-JNIEXPORT void JNICALL Java_com_zenbox_ZenboxActivity_OpticalFlow();
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow();
 
-JNIEXPORT void JNICALL Java_com_zenbox_ZenboxActicity_OpticalFlow() {
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow() {
 	std::cout << "THIS IS A TEST" << std::endl;
 }
 }

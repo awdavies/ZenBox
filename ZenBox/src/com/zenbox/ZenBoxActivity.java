@@ -90,6 +90,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			switch (status) {
 			case LoaderCallbackInterface.SUCCESS: {
 				Log.i(TAG, "ZenBox loaded successfully");
+				System.loadLibrary("zen_box");
 				mOpenCvCameraView.enableView();
 				mOpenCvCameraView.setMaxFrameSize(640, 480);
 				mOpenCvCameraView.setOnTouchListener(ZenBoxActivity.this);
@@ -252,6 +253,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		
 		this.drawFeatures(inputFrame);
 		this.drawRGBHist(inputFrame);
+		OpticalFlow();
 		
 		// These just show up in the corner of the screen (I think). And show the color
 		// of the selected point.
@@ -382,4 +384,5 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		return new Scalar(pointMatRgba.get(0, 0));
 	}
 
+	public native void OpticalFlow();
 }
