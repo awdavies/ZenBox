@@ -10,10 +10,13 @@
  *      Author: Andrew Davies
  */
 #include <jni.h>
+#include <math.h>
 #include <stdint.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d/features2d.hpp>
+#include <opencv2/video/tracking.hpp>
+#include <opencv2/video/video.hpp>
 #include <vector>
 #include <iostream>
 
@@ -23,12 +26,7 @@ using namespace cv;
 /* Constants. */
 const uint16_t MAX_FEATURES = 100;
 const Scalar FEATURE_COLOR = Scalar(255, 255, 255, 255);
-
-static inline void kpVecToPVec(vector<KeyPoint>* in, vector<Point_<float> >* out) {
-	out->clear();
-	for (vector<KeyPoint>::iterator it = in->begin(); it != in->end(); ++it)
-		out->push_back(it->pt);
-}
+const int FLOW_MAX_LEVEL = 3;
 
 #ifndef ZEN_BOX_HPP_
 #define ZEN_BOX_HPP_
@@ -63,7 +61,7 @@ extern "C" {
  * 	and will only need to allocate the space for the object.
  */
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(
-		JNIEnv*, jobject, jlong addrPrevMat, jlong addrCurMat, jlong addrCurMatGray, jlong addrPrevFeat, jlong addrCurFeat);
+		JNIEnv*, jobject, jlong addrPrevMat, jlong addrCurMat, jlong addrPrevMatGray, jlong addrCurMatGray, jlong addrPrevFeat, jlong addrCurFeat);
 
 #ifdef __cplusplus
 }

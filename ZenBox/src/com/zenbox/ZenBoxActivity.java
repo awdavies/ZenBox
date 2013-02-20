@@ -13,6 +13,7 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
+import org.opencv.video.*;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
@@ -38,6 +39,9 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		CvCameraViewListener {
 	// tag for this class
 	private static final String TAG = "ZenBox::Activity";
+	
+	private static final Size IMAGE_SIZE = new Size(640, 480);
+	
 	// open CV camera
 	private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -72,7 +76,11 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	// Feature detector.
 	private FeatureDetector mFeatureDetector;
 	private MatOfPoint2f mFeatures;
-	private Mat mPrevFeatures;
+	private MatOfPoint2f mPrevFeatures;
+	
+	// Pyramid matrices for optical flow detection.
+	private Mat mPrevPyr;
+	private Mat mCurPyr;
 	
 	// The audio manager member.
 	private AudioMessenger mAudioMsgr;
@@ -80,9 +88,9 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	// The main Rgba matrix.
 	private Mat mRgba;
 	private Mat mPrevRgba;
-	
 	// An intermediate grayscale matrix meant for mRgba.
 	private Mat mGray;
+	private Mat mPrevGray;
 
 	// need this callback in order to enable the openCV camera
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -93,7 +101,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 				Log.i(TAG, "ZenBox loaded successfully");
 				System.loadLibrary("zen_box");
 				mOpenCvCameraView.enableView();
-				mOpenCvCameraView.setMaxFrameSize(640, 480);
+				mOpenCvCameraView.setMaxFrameSize((int)IMAGE_SIZE.width, (int)IMAGE_SIZE.height);
 				mOpenCvCameraView.setOnTouchListener(ZenBoxActivity.this);
 			}
 				break;
@@ -133,8 +141,9 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// matrices, or CV_8UC(n),..., CV_64FC(n) to create multi-channel (up to
 		// CV_MAX_CN channels) matrices.
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
-		mGray = new Mat(height, width, CvType.CV_8UC4);
-		mPrevRgba = new Mat();
+		mPrevRgba = new Mat(height, width, CvType.CV_8UC4);
+		mGray = new Mat(height, width, CvType.CV_8UC1);
+		mPrevGray = new Mat(height, width, CvType.CV_8UC1);
 		mObjDetector = new BlobDetector();
 		mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
 		mSpectrum = new Mat();
@@ -163,9 +172,12 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
                 new Scalar(180, 0, 255, 255), new Scalar(255, 0, 255, 255), new Scalar(255, 0, 215, 255), new Scalar(255, 0, 85, 255),  new Scalar(255, 0, 0, 255)
         };
         
+        mPrevPyr = new Mat();
+        mCurPyr = new Mat();
+        
         // Create an orb feature detector.
         mFeatureDetector = FeatureDetector.create(FeatureDetector.ORB);
-		mPrevFeatures = new Mat();
+		mPrevFeatures = new MatOfPoint2f();
 		mFeatures = new MatOfPoint2f();
         FEATURE_CIRCLE_RADIUS = 10;
         FEATURE_COLOR = new Scalar(255, 255, 255, 255);
@@ -227,6 +239,12 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	@Override
 	public void onCameraViewStopped() {
 		mRgba.release();
+		mPrevFeatures.release();
+		mPrevRgba.release();
+		mFeatures.release();
+		mGray.release();
+		mSpectrum.release();
+		mMat0.release();
 	}
 
 	/*
@@ -242,27 +260,26 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		inputFrame.copyTo(mRgba);
 		
 		// Detect objects.
-		mObjDetector.process(mRgba);
-		List<MatOfPoint> contours = mObjDetector.getContours();
-		Log.i(TAG, "Contours count: " + contours.size());
-		Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-		
-		// This is a simple implementation of tracking the bounding shapes.
-		// For now only one sound is played for a single rectangle on the screen.
-		if (contours.size() > 0) {
-			List<Rect> rectangles = this.createBoundingShapes(contours);
-			this.playRectangleSound(rectangles.get(0));
-		}
-		
-		Imgproc.cvtColor(inputFrame, mGray, Imgproc.COLOR_RGBA2GRAY);
+//		mObjDetector.process(mRgba);
+//		List<MatOfPoint> contours = mObjDetector.getContours();
+//		Log.i(TAG, "Contours count: " + contours.size());
+//		Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+//		
+//		// This is a simple implementation of tracking the bounding shapes.
+//		// For now only one sound is played for a single rectangle on the screen.
+//		if (contours.size() > 0) {
+//			List<Rect> rectangles = this.createBoundingShapes(contours);
+//			this.playRectangleSound(rectangles.get(0));
+//		}
 		OpticalFlow(
 				mPrevRgba.getNativeObjAddr(), 
-				inputFrame.getNativeObjAddr(),
+				mRgba.getNativeObjAddr(),
+				mPrevGray.getNativeObjAddr(),
 				mGray.getNativeObjAddr(),
 				mPrevFeatures.getNativeObjAddr(),
 				mFeatures.getNativeObjAddr());
 		Log.i(TAG, "mFeatures: " + mFeatures.dump());
-		this.drawFeatures();
+		//this.drawFeatures();
 		this.drawRGBHist(inputFrame);
 		
 		// These just show up in the corner of the screen (I think). And show the color
@@ -272,7 +289,8 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		//		 
 		//		Mat spectrumLabel = mRgba.submat(4,  4+ mSpectrum.rows(), 70, 70 + mSpectrum.cols());
 		//		mSpectrum.copyTo(spectrumLabel);
-		 
+		
+		inputFrame.copyTo(mPrevRgba);
 		return mRgba;
 	}
 	
@@ -298,7 +316,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	private void drawFeatures() {
 		// This can be sped up by simply accessing each one of the elements of the array.
 		// this might be useful when handling pure data.  For now, though, this is just for debugging.
-		for (Point p : mFeatures.toArray()) {
+		for (Point p : mPrevFeatures.toArray()) {
 			Core.circle(mRgba, p, FEATURE_CIRCLE_RADIUS, FEATURE_COLOR);
 		}
 	}
@@ -392,6 +410,10 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		return new Scalar(pointMatRgba.get(0, 0));
 	}
 
-	public native void OpticalFlow(
-			long addrPrevMat, long addrCurMat, long addrCurMatGray, long addrPrevFeat, long addrCurFeat);
+	public native void OpticalFlow(long addrPrevMat,
+								   long addrCurMat,
+								   long addrPrevMatGray,
+								   long addrCurMatGray,
+								   long addrPrevFeat,
+								   long addrCurFeat);
 }

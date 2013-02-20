@@ -1,30 +1,55 @@
 #include "./zen_box.hpp"
 
-JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(
-		JNIEnv*, jobject, jlong addrPrevMat, jlong addrCurMat, jlong addrCurMatGray, jlong addrPrevFeat, jlong addrCurFeat) {
-	static vector<Point_<float> > p_buf(MAX_FEATURES);
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
+																  jobject,
+																  jlong addrPrevMat,
+																  jlong addrCurMat,
+																  jlong addrPrevMatGray,
+																  jlong addrCurMatGray,
+																  jlong addrPrevFeat,
+																  jlong addrCurFeat) {
+	static vector<Point2f> p_buf(MAX_FEATURES);
+	static vector<Point2f> predicted_buf(MAX_FEATURES);
 	static vector<KeyPoint> kp_buf(MAX_FEATURES);
+	static vector<uchar> status(MAX_FEATURES);
+	static vector<float> error(MAX_FEATURES);
 
 	// Extract member variables from JVM.
 	Mat& prevMat    		= *(Mat *) addrPrevMat;			// Previous Matrix.
 	Mat& curMat    		 	= *(Mat *) addrCurMat;			// Current Matrix.
 	Mat& curMatGray 		= *(Mat *) addrCurMatGray;		// Current Matrix, Gray.
-	Mat& prevFeat   		= *(Mat *) addrPrevFeat;		// Previous features.
-	Mat& curFeat 			= *(Mat *) addrCurFeat;			// Current features.
+	Mat& prevMatGray 		= *(Mat *) addrPrevMatGray;
 
 	// Detect the features of the current array.
-	OrbFeatureDetector detector(MAX_FEATURES);
-	cvtColor(curMat, curMatGray, CV_RGB2GRAY);
-	detector.detect(curMatGray, kp_buf);
+	vector<Point2f> points;
+	cvtColor(curMat, curMatGray, CV_RGBA2GRAY);
+	cvtColor(prevMat, prevMatGray, CV_RGBA2GRAY);
+	goodFeaturesToTrack(prevMatGray, p_buf, 30, 0.01, 0.01);
+	for (uint32_t i = 0; i < p_buf.size(); ++i) {
+		const Point2f& p = p_buf[i];
+		circle(curMat, Point(p.x, p.y), 10, Scalar(255, 255, 255, 255));
+	}
 
-	// Set the current data to be equal to the previous data.
-	prevFeat = curFeat;
-	prevMat = curMat;
+	Mat prevFeat(p_buf);
+	calcOpticalFlowPyrLK(prevMatGray, curMatGray, prevFeat, predicted_buf, status, error);
+	for (uint32_t i = 0; i < predicted_buf.size(); ++i) {
+		if (status[i] == 0)
+			continue;
 
-	// Convert the key points ( O(n) ) to point2f and then send them to the
-	// feature array.  Note that the Point2f conversion has to do with the
-	// fact that the Mat class can only have sent to it information with
-	// subclasses of DataType.  KeyPoint, sadly, is not a subclass of DataType.
-	kpVecToPVec(&kp_buf, &p_buf);
-	curFeat = Mat_<Point_<float> >(p_buf);
+		Point2f q = predicted_buf[i];
+		Point2f p = p_buf[i];
+		double angle = atan2(p.y - q.y, p.x - q.x);
+		double hyp   = sqrt(pow(p.y - q.y, 2) + pow(p.x - q.x, 2));
+
+		// Double the length of the arrow!
+		q = Point2f(p.x - 3 * hyp * cos(angle), p.y - 3 * hyp * sin(angle));
+		line(curMat, Point(p.x, p.y), Point(q.x, q.y), Scalar(255, 255, 255, 255));
+
+		// Draw the tips of the arrow.
+		p = Point2f(q.x + 9 * cos(angle + 3.14159 / 4), (q.y + 9 * sin(angle + 3.14159 / 4)));
+		line(curMat, Point(p.x, p.y), Point(q.x, q.y), Scalar(255, 255, 255, 255));
+		q = Point2f((q.x + 9 * cos(angle - 3.14159 / 4)), (q.y + 9 * sin(angle - 3.14159 / 4)));
+		line(curMat, Point(p.x, p.y), Point(q.x, q.y), Scalar(255, 255, 255, 255));
+	}
+	*(Mat *) addrCurFeat = Mat(predicted_buf);
 }
