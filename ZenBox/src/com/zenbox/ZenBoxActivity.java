@@ -251,9 +251,10 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			this.playRectangleSound(rectangles.get(0));
 		}
 		
-		this.drawFeatures(inputFrame);
+		//this.drawFeatures(inputFrame);
 		this.drawRGBHist(inputFrame);
-		OpticalFlow();
+		Imgproc.cvtColor(inputFrame, mGray, Imgproc.COLOR_RGBA2GRAY);
+		OpticalFlow(mGray.getNativeObjAddr(), mRgba.getNativeObjAddr(), 0L, 0L);
 		
 		// These just show up in the corner of the screen (I think). And show the color
 		// of the selected point.
@@ -384,5 +385,5 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		return new Scalar(pointMatRgba.get(0, 0));
 	}
 
-	public native void OpticalFlow();
+	public native void OpticalFlow(long addrPrevMat, long addrCurMat, long addrPrevFeat, long addrCurFeat);
 }

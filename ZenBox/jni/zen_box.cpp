@@ -6,13 +6,24 @@
 #include <iostream>
 
 using std::vector;
+using namespace cv;
 
 extern "C" {
 
-JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow();
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*, jobject, jlong addrPrevMat, jlong addrCurMat, jlong addrPrevFeat, jlong addrCurFeat);
 
-JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow() {
-	std::cout << "THIS IS A TEST" << std::endl;
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
+		jobject, jlong addrPrevMat, jlong addrCurMat, jlong addrPrevFeat, jlong addrCurFeat) {
+	Mat& prevMat = *(Mat *) addrPrevMat;
+	Mat& curMat = *(Mat *) addrCurMat;
+	vector<KeyPoint> kpVec;
+
+	OrbFeatureDetector detector(35);
+	detector.detect(prevMat, kpVec);
+	for (unsigned int i = 0; i < kpVec.size(); ++i) {
+		const KeyPoint& kp = kpVec[i];
+		circle(curMat, kp.pt, 10, Scalar(255, 255, 255, 255));
+	}
 }
 }
 
