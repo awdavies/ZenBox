@@ -13,7 +13,6 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
-import org.opencv.video.*;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
