@@ -1,22 +1,14 @@
 package com.zenbox;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
-import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfKeyPoint;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -50,23 +42,8 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	private Scalar mBlobColorRGBA;
 	private Scalar mBlobColorHSV;
 	private Size SPECTRUM_SIZE;
-	private Scalar CONTOUR_COLOR;
-	private Scalar RECT_COLOR;
 	private int FEATURE_CIRCLE_RADIUS;
 	private Scalar FEATURE_COLOR;
-	
-	// Members for handling histogram calculation.
-	private MatOfInt[] mChannels;
-	private MatOfInt mHistSize;
-	private Mat mMat0;
-	private int mHistSizeNum;
-	private MatOfFloat mRanges;
-	private Mat mHist;
-	private float[] mBuf;
-	private Point mP1;
-	private Point mP2;
-	private Scalar[] mColorsRGB;
-	private Scalar[] mColorsHue;
 	
 	// Feature detector.
 	private FeatureDetector mFeatureDetector;
@@ -136,28 +113,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		mBlobColorRGBA = new Scalar(255);
 		mBlobColorHSV = new Scalar(255);
 		SPECTRUM_SIZE = new Size(200, 64);
-		CONTOUR_COLOR = new Scalar(255, 0, 255, 255);
-		RECT_COLOR = new Scalar(255, 0, 0, 255);
 		
-		// Init histogram members.
-		mP1 = new Point();
-		mP2 = new Point();
-		mHistSizeNum = 25;
-		mHist = new  Mat();
-		mHistSize = new MatOfInt(mHistSizeNum);
-		mMat0 = new Mat();
-		mRanges = new MatOfFloat(0f, 256f);
-		mChannels = new MatOfInt[] { new MatOfInt(0), new MatOfInt(1), new MatOfInt(2) };
-		mBuf = new float[mHistSizeNum];
-		mColorsRGB = new Scalar[] { new Scalar(200, 0, 0, 255), new Scalar(0, 200, 0, 255), new Scalar(0, 0, 200, 255) };
-        mColorsHue = new Scalar[] {
-                new Scalar(255, 0, 0, 255),   new Scalar(255, 60, 0, 255),  new Scalar(255, 120, 0, 255), new Scalar(255, 180, 0, 255), new Scalar(255, 240, 0, 255),
-                new Scalar(215, 213, 0, 255), new Scalar(150, 255, 0, 255), new Scalar(85, 255, 0, 255),  new Scalar(20, 255, 0, 255),  new Scalar(0, 255, 30, 255),
-                new Scalar(0, 255, 85, 255),  new Scalar(0, 255, 150, 255), new Scalar(0, 255, 215, 255), new Scalar(0, 234, 255, 255), new Scalar(0, 170, 255, 255),
-                new Scalar(0, 120, 255, 255), new Scalar(0, 60, 255, 255),  new Scalar(0, 0, 255, 255),   new Scalar(64, 0, 255, 255),  new Scalar(120, 0, 255, 255),
-                new Scalar(180, 0, 255, 255), new Scalar(255, 0, 255, 255), new Scalar(255, 0, 215, 255), new Scalar(255, 0, 85, 255),  new Scalar(255, 0, 0, 255)
-        };
-        
         // Create an orb feature detector.
         mFeatureDetector = FeatureDetector.create(FeatureDetector.ORB);
         mFeatures = new MatOfKeyPoint();
@@ -166,6 +122,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
+		mAudioMsgr.sendBang("swapaudio");
 		int cols = mRgba.cols();
 		int rows = mRgba.rows();
 
@@ -234,27 +191,17 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	public Mat onCameraFrame(Mat inputFrame) {
 		// Grab a frame and process it with the object detector.
 		inputFrame.copyTo(mRgba);
-//		mObjDetector.process(mRgba);
-//		List<MatOfPoint> contours = mObjDetector.getContours();
-//		Log.i(TAG, "Contours count: " + contours.size());
-//		Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-//		
-//		// This is a simple implementation of tracking the bounding shapes.
-//		// For now only one sound is played for a single rectangle on the screen.
-//		if (contours.size() > 0) {
-//			List<Rect> rectangles = this.createBoundingShapes(contours);
-//			this.playRectangleSound(rectangles.get(0));
-//		}
+
 		this.drawFeatures(inputFrame);
-		this.drawRGBHist(inputFrame);
+		double[] val = Core.mean(inputFrame).val;
+
+		float grainstart = AudioMessenger.normalize((float)val[0], 1.0f, 0.0f, 255.0f);
+		float graindur = AudioMessenger.normalize((float)val[1], 2000.0f, 10.0f, 255.0f);
+		float grainpitch = AudioMessenger.normalize((float)val[2], 2.0f, 0.3f, 255.0f);
 		
-		// These just show up in the corner of the screen (I think). And show the color
-		// of the selected point.
-		//		Mat colorLabel = mRgba.submat(4, 68, 4, 68);
-		//		colorLabel.setTo(mBlobColorRGBA);
-		//		 
-		//		Mat spectrumLabel = mRgba.submat(4,  4+ mSpectrum.rows(), 70, 70 + mSpectrum.cols());
-		//		mSpectrum.copyTo(spectrumLabel);
+		mAudioMsgr.sendFloat("grainstart_in", grainstart);
+		mAudioMsgr.sendFloat("graindur_in", graindur);
+		mAudioMsgr.sendFloat("grainpitch_in", grainpitch);
 		 
 		return mRgba;
 	}
@@ -271,75 +218,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		KeyPoint[] points = mFeatures.toArray();  // TODO: This might be slow. Check under profiler.
 		for (KeyPoint kp : points) {
 			Core.circle(mRgba, kp.pt, FEATURE_CIRCLE_RADIUS, FEATURE_COLOR);
-		}
-	}
-	
-	/**
-	 * Draws an RGB histogram based on the input frame.  This draws on top of mRgb, so make
-	 * sure to choose the time at which this is called properly.
-	 * @param inputFrame
-	 */
-	private void drawRGBHist(Mat inputFrame) {
-		// Draw RGB Histogram.
-//		Size rgbaSize = mRgba.size();
-		double[] val = Core.mean(inputFrame).val;
-		
-		float grainstart = AudioMessenger.normalize((float)val[0], 1.0f, 0.0f, 255.0f);
-		float graindur = AudioMessenger.normalize((float)val[1], 2000.0f, 10.0f, 255.0f);
-		float grainpitch = AudioMessenger.normalize((float)val[2], 2.0f, 0.3f, 255.0f);
-		
-		mAudioMsgr.sendFloat("grainstart_in", grainstart);
-		mAudioMsgr.sendFloat("graindur_in", graindur);
-		mAudioMsgr.sendFloat("grainpitch_in", grainpitch);
-		//Log.e("GranAudioValues", Double.toString(grainstart) + "\t" + Double.toString(graindur) + "\t" + Double.toString(grainpitch));
-//		int thickness = (int) (rgbaSize.height / (mHistSizeNum + 10) / 5);
-//		int offset = (int) (rgbaSize.height);
-//        if(thickness > 5)
-//        	thickness = 5;
-//		for (int i = 0; i < 3; ++i) {
-//			// Calculate hist from input frame so as to avoid handling other input.
-////			Imgproc.calcHist(Arrays.asList(inputFrame), mChannels[i], mMat0, mHist, mHistSize, mRanges);
-//
-//			Log.e("imageMean " + i, Double.toString(val.val[i]));
-////			Core.normalize(mHist, mHist, rgbaSize.height/2, 0, Core.NORM_INF);
-////			mHist.get(0, 0, mBuf);
-////			for(int j = 0; j < mHistSizeNum; ++j) {
-////                mP1.y = mP2.y = offset - (i * (mHistSizeNum + 10) + j) * thickness;
-////                mP1.x = rgbaSize.width-1;
-////                mP2.x = mP1.x - 2 - (int) mBuf[j];
-////                Core.line(mRgba, mP1, mP2, mColorsRGB[i], thickness);
-////            }
-//		}
-	}
-	
-	/**
-	 * Draws the bounding rectangles around all of the passed contours.  Draws the the main image
-	 * member "mRgba."
-	 * @param contours  The list of contours.
-	 * @return A list of the boundingRectangles created on the screen.
-	 */
-	private List<Rect> createBoundingShapes(List<MatOfPoint> contours) {
-		List<Rect> boundingRectangles = new ArrayList<Rect>(contours.size());
-		for (int i = 0; i < contours.size(); ++i) {
-			Rect boundingRect = Imgproc.boundingRect(contours.get(i));
-			boundingRectangles.add(boundingRect);
-			Core.rectangle(mRgba, boundingRect.tl(), boundingRect.br(),
-					RECT_COLOR);
-		}
-		return boundingRectangles;
-	}
-	
-	/**
-	 * Plays a sound according to some bounding rectangle on the screen.  The method
-	 * is currently a bit ad-lib, so just passing a single rectangle per frame should create
-	 * a steady sound.
-	 */
-	private void playRectangleSound(Rect rectangle) {
-		if (rectangle != null) {
-			JavaCameraView v = (JavaCameraView) findViewById(R.id.activity_zen_box_view);
-			float x = AudioMessenger.normalize(rectangle.x + rectangle.width / 2, 0.5f, 1.5f, v.getWidth());
-			float y = AudioMessenger.normalize(rectangle.y + rectangle.height / 2, 0.3f, 0.8f, v.getHeight());
-			mAudioMsgr.sendMessage("change", "a", x, y);
 		}
 	}
 

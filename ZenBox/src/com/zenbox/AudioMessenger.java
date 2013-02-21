@@ -110,6 +110,11 @@ public class AudioMessenger {
 		return PdBase.sendMessage(recv, msg, args);
 	}
 	
+	public int sendSetFileName(String fileName) {
+		return PdBase.sendMessage("setfilename", "read",
+				new Object[] {"-resize", fileName, "source-array"});
+	}
+
 	/**
 	 * Cleans up the audio messenger.  To be called upon exiting the activity.
 	 */
@@ -127,20 +132,24 @@ public class AudioMessenger {
 	
 	private void initPd() {
 		Resources res = act.getResources();
-		File patch = null, synth = null, audio = null, reverb = null;
+		File patch = null;
 		
 		try {
 			PdBase.subscribe("android");
 			
+			// Open all of the resources
 			InputStream inm = res.openRawResource(R.raw.grain);
 			InputStream inp = res.openRawResource(R.raw.grainvoice);
-			InputStream ina = res.openRawResource(R.raw.vowels2);
 			InputStream inr = res.openRawResource(R.raw.simplereverb);
+			InputStream ina1 = res.openRawResource(R.raw.vowels2);
+			InputStream ina2 = res.openRawResource(R.raw.icke);
 			
+			// Load all of the resources into the cachedir
 			patch = IoUtils.extractResource(inm, "grain.pd", act.getCacheDir());
-			synth = IoUtils.extractResource(inp, "grainvoice.pd", act.getCacheDir());
-			audio = IoUtils.extractResource(ina, "vowels2.wav", act.getCacheDir());
-			reverb = IoUtils.extractResource(inr, "simplereverb.pd", act.getCacheDir());
+			IoUtils.extractResource(inp, "grainvoice.pd", act.getCacheDir());
+			IoUtils.extractResource(inr, "simplereverb.pd", act.getCacheDir());
+			IoUtils.extractResource(ina1, "vowels2.wav", act.getCacheDir());
+			IoUtils.extractResource(ina2, "icke.wav", act.getCacheDir());
 			
 			PdBase.openPatch(patch);
 			
@@ -152,15 +161,6 @@ public class AudioMessenger {
 					R.drawable.icon, name, name);
 		} catch (IOException e) {
 			Log.e(TAG, e.toString());
-		} finally {
-			if (patch != null)
-				patch.delete();
-			if (synth != null)
-				synth.delete();
-			if (audio != null)
-				audio.delete();
-			if (reverb != null)
-				reverb.delete();
 		}
 	}
 	
