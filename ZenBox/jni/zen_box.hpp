@@ -24,9 +24,17 @@ using std::vector;
 using namespace cv;
 
 /* Constants. */
-const uint16_t MAX_FEATURES = 100;
+const int MAX_FEATURES = 10;
 const Scalar FEATURE_COLOR = Scalar(255, 255, 255, 255);
 const int FLOW_MAX_LEVEL = 3;
+const uint32_t FLOW_MAX_ITER = 10;
+const double FLOW_MIN_EPSILON = 0.5;
+
+// Terminate optical flow after one of these events has occurred first.
+// We're not driving a robot car, so none of these values need to be
+// extremely robust (hence why all of this is native).
+TermCriteria FLOW_TERM_CRITERIA(TermCriteria::COUNT + TermCriteria::EPS,
+		FLOW_MAX_ITER, FLOW_MIN_EPSILON);
 
 #ifndef ZEN_BOX_HPP_
 #define ZEN_BOX_HPP_
@@ -60,8 +68,9 @@ extern "C" {
  * 	modified by this function, and it is not intended for the caller to do any changes,
  * 	and will only need to allocate the space for the object.
  */
-JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(
-		JNIEnv*, jobject, jlong addrPrevMat, jlong addrCurMat, jlong addrPrevMatGray, jlong addrCurMatGray, jlong addrPrevFeat, jlong addrCurFeat);
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
+		jobject, jlong addrPrevMat, jlong addrCurMat, jlong addrPrevMatGray,
+		jlong addrCurMatGray, jlong addrPrevFeat, jlong addrCurFeat);
 
 #ifdef __cplusplus
 }

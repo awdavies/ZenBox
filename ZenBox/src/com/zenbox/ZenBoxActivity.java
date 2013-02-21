@@ -100,7 +100,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 				Log.i(TAG, "ZenBox loaded successfully");
 				System.loadLibrary("zen_box");
 				mOpenCvCameraView.enableView();
-				mOpenCvCameraView.setMaxFrameSize((int)IMAGE_SIZE.width, (int)IMAGE_SIZE.height);
+				//mOpenCvCameraView.setMaxFrameSize((int)IMAGE_SIZE.width, (int)IMAGE_SIZE.height);
 				mOpenCvCameraView.setOnTouchListener(ZenBoxActivity.this);
 			}
 				break;
@@ -279,7 +279,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 				mFeatures.getNativeObjAddr());
 		Log.i(TAG, "mFeatures: " + mFeatures.dump());
 		//this.drawFeatures();
-		this.drawRGBHist(inputFrame);
+		//this.drawRGBHist(inputFrame);
 		
 		// These just show up in the corner of the screen (I think). And show the color
 		// of the selected point.
