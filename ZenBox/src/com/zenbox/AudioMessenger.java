@@ -25,15 +25,15 @@ import android.util.Log;
  */
 public class AudioMessenger {
 	private static final String TAG = "ZenBox::AudioMessenger";
-	
+
 	private static AudioMessenger messenger = null;
-	
+
 	private PdService pdService;
-	
+
 	private final ServiceConnection connection;
-	
+
 	private Activity act; 
-	
+
 	private AudioMessenger(Activity act) {
 		this.act = act;
 		connection = new ServiceConnection() {
@@ -42,17 +42,17 @@ public class AudioMessenger {
 				pdService = ((PdService.PdBinder)svc).getService();
 				initPd();
 			}
-		
+
 			@Override
 			public void onServiceDisconnected(ComponentName name) {
 				// Never run, or so I am told (required for interface)
 			}
 		};
-		
+
 		act.bindService(new Intent(act, PdService.class),
 				connection, Activity.BIND_AUTO_CREATE);
 	}
-	
+
 	/**
 	 * Return the instance of AudioMessenger
 	 * 
@@ -74,7 +74,7 @@ public class AudioMessenger {
 	public int sendBang(String recv) {
 		return PdBase.sendBang(recv);
 	}
-	
+
 	/**
 	 * Sends a float to an object in the PD patch.
 	 *  
@@ -85,7 +85,7 @@ public class AudioMessenger {
 	public int sendFloat(String recv, float x) {
 		return PdBase.sendFloat(recv, x);
 	}
-	
+
 	/**
 	 * Sends a list to an object in the PD patch.
 	 * 
@@ -96,7 +96,7 @@ public class AudioMessenger {
 	public int sendList(String recv, Object... args) {
 		return PdBase.sendList(recv, args);
 	}
-	
+
 	/**
 	 * Sends a typed message to an object in the PD patch.
 	 * 
@@ -109,12 +109,14 @@ public class AudioMessenger {
 	public int sendMessage(String recv, String msg, Object... args) {
 		return PdBase.sendMessage(recv, msg, args);
 	}
-	
+
 	/**
 	 * Cleans up the audio messenger.  To be called upon exiting the activity.
 	 */
 	public void cleanup() {
+		Log.e("ZenBox::AudioMessenger", "We're cleaning up!");
 		try {
+			pdService.stopAudio();
 			act.unbindService(connection);
 			messenger = null;
 		} catch (IllegalArgumentException e) {
@@ -122,26 +124,28 @@ public class AudioMessenger {
 			pdService = null;
 		}
 	}
-	
+
 	private void initPd() {
 		Resources res = act.getResources();
-		File patch = null, synth = null, audio = null;
-		
+		File patch = null, synth = null, audio = null, reverb = null;
+
 		try {
 			PdBase.subscribe("android");
-			
-			InputStream inm = res.openRawResource(R.raw.main);
-			InputStream inp = res.openRawResource(R.raw.synth);
-			InputStream ina = res.openRawResource(R.raw.icke);
-			
-			patch = IoUtils.extractResource(inm, "main.pd", act.getCacheDir());
-			synth = IoUtils.extractResource(inp, "synth.pd", act.getCacheDir());
-			audio = IoUtils.extractResource(ina, "icke.wav", act.getCacheDir());
-			
+
+			InputStream inm = res.openRawResource(R.raw.grain);
+			InputStream inp = res.openRawResource(R.raw.grainvoice);
+			InputStream ina = res.openRawResource(R.raw.vowels2);
+			InputStream inr = res.openRawResource(R.raw.simplereverb);
+
+			patch = IoUtils.extractResource(inm, "grain.pd", act.getCacheDir());
+			synth = IoUtils.extractResource(inp, "grainvoice.pd", act.getCacheDir());
+			audio = IoUtils.extractResource(ina, "vowels2.wav", act.getCacheDir());
+			reverb = IoUtils.extractResource(inr, "simplereverb.pd", act.getCacheDir());
+
 			PdBase.openPatch(patch);
-			
+
 			String name = res.getString(R.string.app_name);
-			
+
 			// -1 means use default, which should work for us.
 			pdService.initAudio(-1, -1, -1, -1);
 			pdService.startAudio(new Intent(act, ZenBoxActivity.class),
@@ -155,9 +159,11 @@ public class AudioMessenger {
 				synth.delete();
 			if (audio != null)
 				audio.delete();
+			if (reverb != null)
+				reverb.delete();
 		}
 	}
-	
+
 	public static float normalize(float in, float oMax, float oMin, float inMax) {
 		return oMin + in * (oMax - oMin) / inMax;
 	}
