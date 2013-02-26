@@ -2,7 +2,19 @@
 <resources>
 
     <string name="app_name">ZenBox</string>
-    <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
+    <string name="swap_camera">swap</string>
+    <string name="file1">File1</string>
+    <string name="file2">File2</string>
+    <string name="other1">other1</string>
+    <string name="drop_down_menu">click here</string>
 
+    <string-array name="country_arrays">
+        <item>Change</item>
+        <item>This</item>
+        <item>In</item>
+        <item>res</item>
+        <item>values</item>
+        <item>strings</item>
+    </string-array>
 </resources>
