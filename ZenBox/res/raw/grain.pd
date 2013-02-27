@@ -1,4 +1,4 @@
-#N canvas 919 250 748 636 10;
+#N canvas 162 334 748 636 10;
 #N canvas 0 0 450 300 (subpatch) 0;
 #X array source-array 129841 float 0;
 #X coords 0 1 129840 -1 100 100 1;
@@ -298,7 +298,7 @@
 #X obj 316 172 s overlap;
 #X text 314 110 Overlap;
 #X text -109 13 Global Grain Settings;
-#X obj -97 316 catch~ bus;
+#X obj -97 291 catch~ bus;
 #X obj -92 456 dac~;
 #X obj 42 214 r graindur;
 #X obj 42 244 / 2;
@@ -348,13 +348,12 @@
 #X obj 247 429 s gr_go;
 #X obj -6 277 r gr_go;
 #X text 158 279 Initialization;
-#X text -97 298 Out;
+#X text -97 273 Out;
 #X text 40 196 The Synth;
 #X obj 153 298 r setfilename;
 #X obj 313 368 s setfilename;
 #X obj 314 319 s setfilename;
 #X obj 247 321 t b b b;
-#X msg 313 347 read -resize vowels2.wav source-array;
 #X msg 314 298 read -resize icke.wav source-array;
 #X obj 353 218 f;
 #X obj 386 218 + 1;
@@ -363,6 +362,7 @@
 #X obj 329 193 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
 #X obj 352 196 r swapaudio;
+#X msg 313 347 read -resize vowels2.wav source-array;
 #X connect 1 0 2 0;
 #X connect 5 0 6 0;
 #X connect 5 0 7 0;
@@ -429,14 +429,14 @@
 #X connect 73 0 1 0;
 #X connect 76 0 68 0;
 #X connect 76 1 4 0;
-#X connect 76 2 77 0;
-#X connect 77 0 74 0;
-#X connect 78 0 75 0;
-#X connect 79 0 80 0;
-#X connect 79 0 81 0;
-#X connect 80 0 79 1;
-#X connect 81 0 82 0;
+#X connect 76 2 84 0;
+#X connect 77 0 75 0;
+#X connect 78 0 79 0;
+#X connect 78 0 80 0;
+#X connect 79 0 78 1;
+#X connect 80 0 81 0;
+#X connect 81 0 77 0;
+#X connect 81 1 84 0;
 #X connect 82 0 78 0;
-#X connect 82 1 77 0;
-#X connect 83 0 79 0;
-#X connect 84 0 79 0;
+#X connect 83 0 78 0;
+#X connect 84 0 74 0;

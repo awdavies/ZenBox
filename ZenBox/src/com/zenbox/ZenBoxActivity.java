@@ -122,7 +122,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
-		mAudioMsgr.sendBang("swapaudio");
+		mAudioMsgr.sendNextFileName();
 		int cols = mRgba.cols();
 		int rows = mRgba.rows();
 

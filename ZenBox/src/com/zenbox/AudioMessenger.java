@@ -3,6 +3,7 @@ package com.zenbox;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 import org.puredata.android.service.PdService;
 import org.puredata.core.PdBase;
@@ -32,10 +33,15 @@ public class AudioMessenger {
 	
 	private final ServiceConnection connection;
 	
-	private Activity act; 
+	private Activity act;
+
+	private ArrayList<String> samples;
+	private int sampleIndex;
 	
 	private AudioMessenger(Activity act) {
 		this.act = act;
+		samples = new ArrayList<String>();
+		sampleIndex = 0;
 		connection = new ServiceConnection() {
 			@Override
 			public void onServiceConnected(ComponentName name, IBinder svc) {
@@ -110,9 +116,26 @@ public class AudioMessenger {
 		return PdBase.sendMessage(recv, msg, args);
 	}
 	
+	/**
+	 * Sends a message to set the filename of the grain source.
+	 *
+	 * @param fileName	Name of the file (including .wav)
+	 *
+	 * @return			error code, 0 on success
+	 */
 	public int sendSetFileName(String fileName) {
 		return PdBase.sendMessage("setfilename", "read",
 				new Object[] {"-resize", fileName, "source-array"});
+	}
+
+	/**
+	 * Cycles to the next loaded sample.
+	 *
+	 * @return error code, 0 on success
+	 */
+	public int sendNextFileName() {
+		sampleIndex = (sampleIndex + 1) % samples.size();
+		return sendSetFileName(samples.get(sampleIndex));
 	}
 
 	/**
@@ -143,13 +166,18 @@ public class AudioMessenger {
 			InputStream inr = res.openRawResource(R.raw.simplereverb);
 			InputStream ina1 = res.openRawResource(R.raw.vowels2);
 			InputStream ina2 = res.openRawResource(R.raw.icke);
+			InputStream ina3 = res.openRawResource(R.raw.amen_break);
 			
 			// Load all of the resources into the cachedir
 			patch = IoUtils.extractResource(inm, "grain.pd", act.getCacheDir());
 			IoUtils.extractResource(inp, "grainvoice.pd", act.getCacheDir());
 			IoUtils.extractResource(inr, "simplereverb.pd", act.getCacheDir());
 			IoUtils.extractResource(ina1, "vowels2.wav", act.getCacheDir());
+			samples.add("vowels2.wav");
 			IoUtils.extractResource(ina2, "icke.wav", act.getCacheDir());
+			samples.add("icke.wav");
+			IoUtils.extractResource(ina3, "amen_break.wav", act.getCacheDir());
+			samples.add("amen_break.wav");
 			
 			PdBase.openPatch(patch);
 			
