@@ -19,14 +19,17 @@ import android.os.IBinder;
 import android.util.Log;
 
 /**
- * Singleton class to set up a connection to the PD service
- * and facilitate message passing.
- *
+ * Singleton class to set up a connection to the PD service and facilitate
+ * message passing.
+ * 
  * @author brucec5
- *
  */
 public class AudioMessenger {
 	private static final String TAG = "ZenBox::AudioMessenger";
+
+	private static final String WAV = ".wav";
+
+	private static final String PD = ".pd";
 
 	private static AudioMessenger messenger = null;
 
@@ -46,7 +49,7 @@ public class AudioMessenger {
 		connection = new ServiceConnection() {
 			@Override
 			public void onServiceConnected(ComponentName name, IBinder svc) {
-				pdService = ((PdService.PdBinder)svc).getService();
+				pdService = ((PdService.PdBinder) svc).getService();
 				initPd();
 			}
 
@@ -56,14 +59,14 @@ public class AudioMessenger {
 			}
 		};
 
-		act.bindService(new Intent(act, PdService.class),
-				connection, Activity.BIND_AUTO_CREATE);
+		act.bindService(new Intent(act, PdService.class), connection,
+				Activity.BIND_AUTO_CREATE);
 	}
 
 	/**
 	 * Return the instance of AudioMessenger
-	 *
-	 * @return		the AudioMessenger instance
+	 * 
+	 * @return the AudioMessenger instance
 	 */
 	public static AudioMessenger getInstance(Activity act) {
 		if (messenger == null) {
@@ -74,9 +77,10 @@ public class AudioMessenger {
 
 	/**
 	 * Sends a bang to an object in the PD patch.
-	 *
-	 * @param recv	symbol associated with the receiver
-	 * @return		error code, 0 on success
+	 * 
+	 * @param recv
+	 *            symbol associated with the receiver
+	 * @return error code, 0 on success
 	 */
 	public int sendBang(String recv) {
 		return PdBase.sendBang(recv);
@@ -84,10 +88,12 @@ public class AudioMessenger {
 
 	/**
 	 * Sends a float to an object in the PD patch.
-	 *
-	 * @param recv	symbol associated with the receiver
-	 * @param x		the float to send
-	 * @return		error code, 0 on success
+	 * 
+	 * @param recv
+	 *            symbol associated with the receiver
+	 * @param x
+	 *            the float to send
+	 * @return error code, 0 on success
 	 */
 	public int sendFloat(String recv, float x) {
 		return PdBase.sendFloat(recv, x);
@@ -95,10 +101,12 @@ public class AudioMessenger {
 
 	/**
 	 * Sends a list to an object in the PD patch.
-	 *
-	 * @param recv	symbol associated with the receiver
-	 * @param args	A list of arguments of type Integer, Float, or String
-	 * @return		error code, 0 on success
+	 * 
+	 * @param recv
+	 *            symbol associated with the receiver
+	 * @param args
+	 *            A list of arguments of type Integer, Float, or String
+	 * @return error code, 0 on success
 	 */
 	public int sendList(String recv, Object... args) {
 		return PdBase.sendList(recv, args);
@@ -106,12 +114,15 @@ public class AudioMessenger {
 
 	/**
 	 * Sends a typed message to an object in the PD patch.
-	 *
-	 * @param recv	symbol associated with the receiver
-	 * @param msg	first symbol of message
-	 * @param args	list of arguments to the message
-	 * 				of type Integer, Float, or String
-	 * @return		error code, 0 on success
+	 * 
+	 * @param recv
+	 *            symbol associated with the receiver
+	 * @param msg
+	 *            first symbol of message
+	 * @param args
+	 *            list of arguments to the message of type Integer, Float, or
+	 *            String
+	 * @return error code, 0 on success
 	 */
 	public int sendMessage(String recv, String msg, Object... args) {
 		return PdBase.sendMessage(recv, msg, args);
@@ -119,19 +130,20 @@ public class AudioMessenger {
 
 	/**
 	 * Sends a message to set the filename of the grain source.
-	 *
-	 * @param fileName	Name of the file (including .wav)
-	 *
-	 * @return			error code, 0 on success
+	 * 
+	 * @param fileName
+	 *            Name of the file (including .wav)
+	 * 
+	 * @return error code, 0 on success
 	 */
 	public int sendSetFileName(String fileName) {
-		return PdBase.sendMessage("setfilename", "read",
-				new Object[] {"-resize", fileName, "source-array"});
+		return PdBase.sendMessage("setfilename", "read", new Object[] {
+				"-resize", fileName, "source-array" });
 	}
 
 	/**
 	 * Cycles to the next loaded sample.
-	 *
+	 * 
 	 * @return error code, 0 on success
 	 */
 	public int sendNextFileName() {
@@ -140,7 +152,7 @@ public class AudioMessenger {
 	}
 
 	/**
-	 * Cleans up the audio messenger.  To be called upon exiting the activity.
+	 * Cleans up the audio messenger. To be called upon exiting the activity.
 	 */
 	public void cleanup() {
 		try {
@@ -154,20 +166,44 @@ public class AudioMessenger {
 	}
 
 	/**
-	 * Given a resource ID for a wav file, load in the file and add it to
-	 * the samples list
-	 *
-	 * @param id	Resource ID for the wav file
-	 * @param res	Resources instance for this activity
-	 * @throws NotFoundException	If the given ID doesn't point to a resource
-	 * @throws IOException	If the file couldn't be extracted into the cache
+	 * Given a resource ID for a file, load in the file into the cache.
+	 * 
+	 * @param id
+	 *            Resource ID for the wav file
+	 * @param type
+	 *            File extension (including dot) of the file
+	 * @param res
+	 *            Resources instance for this activity
+	 * @throws NotFoundException
+	 *             If the given ID doesn't point to a resource
+	 * @throws IOException
+	 *             If the file couldn't be extracted into the cache
 	 */
-	private void registerSoundResource(int id, Resources res)
+	private File registerResource(int id, String type, Resources res)
 			throws NotFoundException, IOException {
 		InputStream in = res.openRawResource(id);
-		String name = res.getResourceEntryName(id) + ".wav";
-		IoUtils.extractResource(in, name, act.getCacheDir());
-		samples.add(name);
+		String name = res.getResourceEntryName(id) + type;
+		return IoUtils.extractResource(in, name, act.getCacheDir());
+	}
+
+	/**
+	 * Given a resource ID for a wav file, load in the file and add it to the
+	 * samples list
+	 * 
+	 * @param id
+	 *            Resource ID for the wav file
+	 * @param res
+	 *            Resources instance for this activity
+	 * @throws NotFoundException
+	 *             If the given ID doesn't point to a resource
+	 * @throws IOException
+	 *             If the file couldn't be extracted into the cache
+	 */
+	private File registerSoundResource(int id, Resources res)
+			throws NotFoundException, IOException {
+		File f = registerResource(id, WAV, res);
+		samples.add(f.getName());
+		return f;
 	}
 
 	/**
@@ -180,15 +216,9 @@ public class AudioMessenger {
 		try {
 			PdBase.subscribe("android");
 
-			// Open all of the resources
-			InputStream inm = res.openRawResource(R.raw.grain);
-			InputStream inp = res.openRawResource(R.raw.grainvoice);
-			InputStream inr = res.openRawResource(R.raw.simplereverb);
-
-			// Load all of the resources into the cachedir
-			patch = IoUtils.extractResource(inm, "grain.pd", act.getCacheDir());
-			IoUtils.extractResource(inp, "grainvoice.pd", act.getCacheDir());
-			IoUtils.extractResource(inr, "simplereverb.pd", act.getCacheDir());
+			patch = registerResource(R.raw.grain, PD, res);
+			registerResource(R.raw.grainvoice, PD, res);
+			registerResource(R.raw.simplereverb, PD, res);
 
 			registerSoundResource(R.raw.vowels2, res);
 			registerSoundResource(R.raw.icke, res);
