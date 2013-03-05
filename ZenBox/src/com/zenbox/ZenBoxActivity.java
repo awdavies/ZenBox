@@ -98,6 +98,8 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		mGray = new Mat(height, width, CvType.CV_8UC1);
 		mPrevGray = new Mat(height, width, CvType.CV_8UC1);
 		mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
+		mPrevFeatures = new MatOfPoint2f();
+		mFeatures = new MatOfPoint2f();
 	}
 
 	@Override
