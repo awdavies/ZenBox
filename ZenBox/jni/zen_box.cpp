@@ -91,3 +91,9 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
 	draw_arrows(&predicted_buf, &p_buf, status, &curImg);
 	draw_flow_vector(&curImg);
 }
+
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_GetClusters(JNIEnv*,
+		jobject, jlong addrImg, jlong addrFrame) {
+	Mat& img = *(Mat *) addrImg;
+	Mat& frame = *(Mat *) addrFrame;
+}

@@ -67,6 +67,12 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_DetectFeatures(JNIEnv*,
 		jobject, jlong addrImg, jlong addrGrayImg, jlong addrFeatures, jlong addrFrame);
 
+/**
+ * TODO: Document me properly!
+ */
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_GetClusters(JNIEnv*,
+		jobject, jlong addrImg, jlong addrFrame);
+
 #ifdef __cplusplus
 }
 #endif
