@@ -31,15 +31,16 @@ static const int MAX_FEATURES = 64;
 static const int INTENSITY_THRESHOLD = 55;
 static const Scalar FEATURE_COLOR = Scalar(255, 255, 255, 255);
 static const int FLOW_MAX_LEVEL = 3;
-static const uint32_t FLOW_MAX_ITER = 10;
-static const double FLOW_MIN_EPSILON = 0.25;
-static const OrbFeatureDetector DETECTOR(MAX_FEATURES, 1.6f, 3, 25, 0, 4, ORB::FAST_SCORE, 25);
+static const uint32_t FLOW_MAX_ITER = 9;
+static const double FLOW_MIN_EPSILON = 0.35;
+static const OrbFeatureDetector DETECTOR(MAX_FEATURES, 1.6f, 3, 26, 0, 2, ORB::FAST_SCORE, 26);
 
 // Some global buffers.  This is a bit of a hack, but it will (read might) add some speedup,
 // since optical flow is awfully slow, especially on an android device.
 static vector<KeyPoint> kp_buf(MAX_FEATURES);
 static vector<Point2f> p_buf(MAX_FEATURES);
 static vector<Point2f> predicted_buf(MAX_FEATURES);
+static vector<uchar> status(MAX_FEATURES);
 static const Point flow_vector_p(320, 240);
 static Point flow_vector_q(0, 0);
 
