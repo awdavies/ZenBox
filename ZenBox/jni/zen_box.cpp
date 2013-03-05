@@ -71,7 +71,8 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_DetectFeatures(JNIEnv*,
 }
 
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
-		jobject, jlong addrCurImg, jlong addrPrevGrayImg, jlong addrCurGrayImg, jlong addrPrevFeatures, jlong addrPredictedFeatures) {
+		jobject, jlong addrCurImg, jlong addrPrevGrayImg, jlong addrCurGrayImg,
+		jlong addrPrevFeatures, jlong addrPredictedFeatures, jlong addrFrame) {
 	static vector<float> error(MAX_FEATURES);
 	static Mat pyrDownMat;
 
@@ -80,6 +81,7 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
 	Mat& prevGrayImg = *(Mat *) addrPrevGrayImg;
 	Mat& curGrayImg = *(Mat *) addrCurGrayImg;
 	Mat& prevFeatures = *(Mat *) addrPrevFeatures;
+	Mat &frame = *(Mat *) addrFrame;
 
 	// Detect the features of the previous image, then predict the location
 	// on the next image.
@@ -88,6 +90,6 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
 	calcOpticalFlowPyrLK(prevGrayImg, curGrayImg, prevFeatures, predicted_buf,
 			status, error, Size(21, 21), FLOW_MAX_LEVEL, FLOW_TERM_CRITERIA, 0);
 	*(Mat *) addrPredictedFeatures = Mat(predicted_buf);  // store predicted features.
-	draw_arrows(&predicted_buf, &p_buf, status, &curImg);
-	draw_flow_vector(&curImg);
+	draw_arrows(&predicted_buf, &p_buf, status, &frame);
+	draw_flow_vector(&frame);
 }
