@@ -9,6 +9,8 @@
  *
  *      Author: Andrew Davies
  */
+#ifndef ZEN_BOX_HPP_
+#define ZEN_BOX_HPP_
 #include <jni.h>
 #include <math.h>
 #include <stdint.h>
@@ -27,8 +29,8 @@ using namespace cv;
 const int MAX_FEATURES = 10;
 const Scalar FEATURE_COLOR = Scalar(255, 255, 255, 255);
 const int FLOW_MAX_LEVEL = 3;
-const uint32_t FLOW_MAX_ITER = 10;
-const double FLOW_MIN_EPSILON = 0.5;
+const uint32_t FLOW_MAX_ITER = 30;
+const double FLOW_MIN_EPSILON = 0.2;
 
 // Terminate optical flow after one of these events has occurred first.
 // We're not driving a robot car, so none of these values need to be
@@ -36,8 +38,7 @@ const double FLOW_MIN_EPSILON = 0.5;
 TermCriteria FLOW_TERM_CRITERIA(TermCriteria::COUNT + TermCriteria::EPS,
 		FLOW_MAX_ITER, FLOW_MIN_EPSILON);
 
-#ifndef ZEN_BOX_HPP_
-#define ZEN_BOX_HPP_
+
 
 #ifdef __cplusplus   // <--- for name mangling and such.
 extern "C" {
@@ -46,9 +47,9 @@ extern "C" {
 /**
  * Detects the optical flow of the image, centered on the set of features
  * detected between frames.  Requires the previous image, as well as the
- * current image (and the features detected from both frames).  Note that
- * any null or invalid values passed to this function will only cause havoc.
- * There will be no address checking; you have been warned.
+ * current image.  Note that any null or invalid values passed to this
+ * function will only cause havoc. There will be no address checking;
+ * you have been warned.
  *
  * @param addrPrevMat The address of the matrix of the previous frame.
  *
