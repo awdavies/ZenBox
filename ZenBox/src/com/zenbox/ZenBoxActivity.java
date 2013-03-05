@@ -129,16 +129,17 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 					mPrevGray.getNativeObjAddr(),
 					mGray.getNativeObjAddr(),
 					mPrevFeatures.getNativeObjAddr(),
-					mFeatures.getNativeObjAddr());
-			return mRgba;
+					mFeatures.getNativeObjAddr(),
+					inputFrame.getNativeObjAddr());
+			return inputFrame;
 		} else {
 			inputFrame.copyTo(mPrevRgba);
 			DetectFeatures(mPrevRgba.getNativeObjAddr(), 
 					mPrevGray.getNativeObjAddr(), 
 					mPrevFeatures.getNativeObjAddr(),
-					mPrevRgba.getNativeObjAddr());
+					inputFrame.getNativeObjAddr());
 			++mFrames;
-			return mPrevRgba;
+			return inputFrame;
 		}
 	}
 
@@ -169,7 +170,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	
 	/////// native methods (documentation in zen_box.hpp ///////
 	public native void OpticalFlow(long addrCurMat, long addrPrevMatGray,
-			long addrCurMatGray, long addrPrevFeat, long addrCurFeat);
+			long addrCurMatGray, long addrPrevFeat, long addrCurFeat, long addrInputFrame);
 	
 	public native void DetectFeatures(long addrImg, long addrGrayImg, long addrFeatures, long addrFrame);
 	
