@@ -21,16 +21,27 @@
 #include <opencv2/video/video.hpp>
 #include <vector>
 #include <iostream>
+#include <sstream>
 
 using std::vector;
 using namespace cv;
 
 /* Constants. */
-const int MAX_FEATURES = 10;
-const Scalar FEATURE_COLOR = Scalar(255, 255, 255, 255);
-const int FLOW_MAX_LEVEL = 3;
-const uint32_t FLOW_MAX_ITER = 30;
-const double FLOW_MIN_EPSILON = 0.2;
+static const int MAX_FEATURES = 64;
+static const int INTENSITY_THRESHOLD = 55;
+static const Scalar FEATURE_COLOR = Scalar(255, 255, 255, 255);
+static const int FLOW_MAX_LEVEL = 3;
+static const uint32_t FLOW_MAX_ITER = 10;
+static const double FLOW_MIN_EPSILON = 0.25;
+static const OrbFeatureDetector DETECTOR(MAX_FEATURES, 1.6f, 3, 25, 0, 4, ORB::FAST_SCORE, 25);
+
+// Some global buffers.  This is a bit of a hack, but it will (read might) add some speedup,
+// since optical flow is awfully slow, especially on an android device.
+static vector<KeyPoint> kp_buf(MAX_FEATURES);
+static vector<Point2f> p_buf(MAX_FEATURES);
+static vector<Point2f> predicted_buf(MAX_FEATURES);
+static const Point flow_vector_p(320, 240);
+static Point flow_vector_q(0, 0);
 
 // Terminate optical flow after one of these events has occurred first.
 // We're not driving a robot car, so none of these values need to be
@@ -38,40 +49,22 @@ const double FLOW_MIN_EPSILON = 0.2;
 TermCriteria FLOW_TERM_CRITERIA(TermCriteria::COUNT + TermCriteria::EPS,
 		FLOW_MAX_ITER, FLOW_MIN_EPSILON);
 
-
-
 #ifdef __cplusplus   // <--- for name mangling and such.
 extern "C" {
 #endif
 
 /**
- * Detects the optical flow of the image, centered on the set of features
- * detected between frames.  Requires the previous image, as well as the
- * current image.  Note that any null or invalid values passed to this
- * function will only cause havoc. There will be no address checking;
- * you have been warned.
- *
- * @param addrPrevMat The address of the matrix of the previous frame.
- *
- * @param addrCurMat The address of the matrix of the current frame.
- *
- * @param addrCurMatGray The address of the space to be used for converting
- * 	the current image frame to grayscale.  This is to aid with robust feature
- * 	detection.  Note this matrix need not be used outside of this function, and
- * 	is simply necessary for space reasons (preventing allocation per every
- * 	frame).
- *
- * @param addrPrevFeat The address of the previous image's features.  Note this will be
- * 	modified by this function, and it is not intended for the caller to do any changes,
- * 	and will only need to allocate the space for the object.
- *
- * @param addrCurFeat The address of the current image's features.  Note this will be
- * 	modified by this function, and it is not intended for the caller to do any changes,
- * 	and will only need to allocate the space for the object.
+ * TODO: Document me properly!
  */
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
-		jobject, jlong addrPrevMat, jlong addrCurMat, jlong addrPrevMatGray,
+		jobject, jlong addrCurMat, jlong addrPrevMatGray,
 		jlong addrCurMatGray, jlong addrPrevFeat, jlong addrCurFeat);
+
+/**
+ * TODO: Document me properly!
+ */
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_DetectFeatures(JNIEnv*,
+		jobject, jlong addrImg, jlong addrGrayImg, jlong addrFeatures, jlong addrFrame);
 
 #ifdef __cplusplus
 }
