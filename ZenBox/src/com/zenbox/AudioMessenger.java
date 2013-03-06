@@ -221,8 +221,10 @@ public class AudioMessenger {
 			registerResource(R.raw.simplereverb, PD, res);
 
 			registerSoundResource(R.raw.vowels2, res);
-			registerSoundResource(R.raw.icke, res);
+			registerSoundResource(R.raw.violin, res);
 			registerSoundResource(R.raw.guitar, res);
+			registerSoundResource(R.raw.menchoir, res);
+			registerSoundResource(R.raw.icke, res);
 			registerSoundResource(R.raw.amen_break, res);
 
 			PdBase.openPatch(patch);
