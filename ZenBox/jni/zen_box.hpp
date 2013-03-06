@@ -9,11 +9,17 @@
  *
  *      Author: Andrew Davies
  */
+
+// TODO: Clean up includes.
 #ifndef ZEN_BOX_HPP_
 #define ZEN_BOX_HPP_
 #include <jni.h>
 #include <math.h>
 #include <stdint.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/opencv_modules.hpp>
+#include <opencv2/ml/ml.hpp>
+#include <opencv2/core/operations.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -27,6 +33,7 @@ using std::vector;
 using namespace cv;
 
 /* Constants. */
+static const int MAX_CLUSTERS = 5;
 static const int MAX_FEATURES = 64;
 static const int INTENSITY_THRESHOLD = 55;
 static const Scalar FEATURE_COLOR = Scalar(255, 255, 255, 255);

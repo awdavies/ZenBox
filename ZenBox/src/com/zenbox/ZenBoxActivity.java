@@ -121,26 +121,30 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	@Override
 	public Mat onCameraFrame(Mat inputFrame) {
 		// Only detect movement every few frames.
-		if (mFrames == 1) {
-			inputFrame.copyTo(mRgba);
-			mFrames = 0;
-			OpticalFlow(
-					mRgba.getNativeObjAddr(),
-					mPrevGray.getNativeObjAddr(),
-					mGray.getNativeObjAddr(),
-					mPrevFeatures.getNativeObjAddr(),
-					mFeatures.getNativeObjAddr(),
-					inputFrame.getNativeObjAddr());
-			return inputFrame;
-		} else {
-			inputFrame.copyTo(mPrevRgba);
-			DetectFeatures(mPrevRgba.getNativeObjAddr(), 
-					mPrevGray.getNativeObjAddr(), 
-					mPrevFeatures.getNativeObjAddr(),
-					inputFrame.getNativeObjAddr());
-			++mFrames;
-			return inputFrame;
-		}
+//		if (mFrames == 1) {
+//			inputFrame.copyTo(mRgba);
+//			mFrames = 0;
+//			OpticalFlow(
+//					mRgba.getNativeObjAddr(),
+//					mPrevGray.getNativeObjAddr(),
+//					mGray.getNativeObjAddr(),
+//					mPrevFeatures.getNativeObjAddr(),
+//					mFeatures.getNativeObjAddr(),
+//					inputFrame.getNativeObjAddr());
+//			return inputFrame;
+//		} else {
+//			inputFrame.copyTo(mPrevRgba);
+//			DetectFeatures(mPrevRgba.getNativeObjAddr(), 
+//					mPrevGray.getNativeObjAddr(), 
+//					mPrevFeatures.getNativeObjAddr(),
+//					inputFrame.getNativeObjAddr());
+//			++mFrames;
+//			return inputFrame;
+//		}
+		
+		inputFrame.copyTo(mRgba);
+		GetClusters(mRgba.getNativeObjAddr(), inputFrame.getNativeObjAddr());
+		return inputFrame;
 	}
 
 	@Override

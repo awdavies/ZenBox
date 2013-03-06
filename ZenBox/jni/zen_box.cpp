@@ -98,4 +98,57 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_GetClusters(JNIEnv*,
 		jobject, jlong addrImg, jlong addrFrame) {
 	Mat& img = *(Mat *) addrImg;
 	Mat& frame = *(Mat *) addrFrame;
+
+	// Ultra-down sampling.
+	//pyrDown(img, img);
+	//pyrDown(img, img);
+
+	Mat meanImg(img.rows, img.cols, CV_32FC3);
+	Mat fgImg(img.rows, img.cols, CV_8UC3);
+
+	Mat floatSource;
+	img.convertTo(floatSource, CV_32F);
+
+	// convert float image to column vector.
+	Mat samples(img.rows * img.cols, 3, CV_32FC1);
+	int idx = 0;
+	for (int y = 0; y < img.rows; ++y) {
+		Vec3f* row = floatSource.ptr<Vec3f>(y);
+		for (int x = 0; x < img.cols; ++x) {
+			samples.at<Vec3f>(idx++, 0) = row[x];
+		}
+	}
+
+	// Hard coded 2 or so clusters.
+	EM em(2);
+	em.train(samples);
+	const std::string param1("means");
+	const std::string param2("weights");
+	Mat means = em.get<Mat>(param1);
+	Mat weights = em.get<Mat>(param2);
+
+	const int fgID = weights.at<float>(0) > weights.at<float>(1) ? 0 : 1;
+
+	idx = 0;
+	for (int y = 0; y < img.rows; ++y) {
+		for (int x = 0; x < img.cols; ++x) {
+
+			// idx 0 is the log likelihood value for the sample.
+			// the first element is the index of the most probable
+			// mixture component.
+			const int result = cvRound(em.predict(samples.row(idx++))[1]);
+			const double* ps = means.ptr<double>(result, 0);
+
+			float *pd = meanImg.ptr<float>(y, x);
+			pd[0] = ps[0] / 255.0;
+			pd[1] = ps[1] / 255.0;
+			pd[2] = ps[2] / 255.0;
+
+			if (result == fgID) {
+				fgImg.at<Point3_<uchar> >(y, x, 0) = img.at<Point3_<uchar> >(y, x, 0);
+			}
+		}
+	}
+
+	fgImg.convertTo(frame, CV_8UC4);
 }
