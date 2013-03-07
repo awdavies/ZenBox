@@ -1,42 +1,34 @@
 package com.zenbox;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.JavaCameraView;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
-
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.features2d.FeatureDetector;
+import org.opencv.features2d.KeyPoint;
 import org.opencv.imgproc.Imgproc;
 
-import android.os.Bundle;
 import android.app.Activity;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View.OnTouchListener;
 import android.widget.AdapterView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 public class ZenBoxActivity extends Activity implements OnTouchListener,
 		CvCameraViewListener {
@@ -55,24 +47,21 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	private Scalar mBlobColorRGBA;
 	private Scalar mBlobColorHSV;
 	private Size SPECTRUM_SIZE;
-	private Scalar CONTOUR_COLOR;
-	private Scalar RECT_COLOR;
-
-	// Members for handling histogram calculation.
-	private MatOfInt[] mChannels;
-	private MatOfInt mHistSize;
-	private Mat mMat0;
-	private int mHistSizeNum;
-	private MatOfFloat mRanges;
-	private Mat mHist, buf;
-	private float[] mBuf;
-	private Point mP1;
-	private Point mP2;
-	private Scalar[] mColorsRGB;
-	private Scalar[] mColorsHue;
-
+	private int FEATURE_CIRCLE_RADIUS;
+	private Scalar FEATURE_COLOR;
+	
+	// Feature detector.
+	private FeatureDetector mFeatureDetector;
+	private MatOfKeyPoint mFeatures;
+	
 	// The audio manager member.
 	private AudioMessenger mAudioMsgr;
+	
+	// The main Rgba matrix.
+	private Mat mRgba;
+	
+	// An intermediate grayscale matrix meant for mRgba.
+	private Mat mGray;
 
 	// need this callback in order to enable the openCV camera
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -80,11 +69,10 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		public void onManagerConnected(int status) {
 			switch (status) {
 			case LoaderCallbackInterface.SUCCESS: {
-				Log.i(TAG, "ZenBox loaded successfully");
+				Log.e(TAG, "ZenBox loaded successfully");
 				mOpenCvCameraView.enableView();
-
 				// This may be the perfect size the displaying, change this size
-				// may change the GUI. at land: 720-> width, 520-> height
+				// may change the GUI. at land: 720-> width, 640-> height
 				mOpenCvCameraView.setMaxFrameSize(720, 640);
 				mOpenCvCameraView.setOnTouchListener(ZenBoxActivity.this);
 			}
@@ -96,8 +84,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			}
 		}
 	};
-
-	private Mat mRgba;
 
 	public ZenBoxActivity() {
 		Log.i(TAG, "Instantiated new " + this.getClass());
@@ -117,46 +103,61 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.activity_zen_box_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
-
+		
 		Spinner spinner = (Spinner) findViewById(R.id.spinner);
-		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+		spinnerListener(spinner);
+		
+
+		SeekBar vol = (SeekBar) findViewById(R.id.volume);
+		volumeListener(vol);
+		
+		
+		mAudioMsgr = AudioMessenger.getInstance(this); // should start the sound up
+	}
+
+	/*
+	 * Edit this one in order to change the volume
+	 */
+	private void volumeListener(SeekBar vol) {
+		
+		
+		//vol.setBackgroundColor(Color.rgb(255, 245, 238));
+		vol.setMax(100);
+		vol.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
 			@Override
-			public void onItemSelected(AdapterView<?> arg0, View arg1,
-					int arg2, long arg3) {
-				// this is selecting the file from the spinner
-			}
+			public void onStopTrackingTouch(SeekBar seekBar) {}
 
 			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {
-
-			}
-		});
-
-		SeekBar seekbar = (SeekBar) findViewById(R.id.seekBar);
-		seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
-			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {
-				// change this to change the sound 
-				//mAudioMsgr.sendMessage("change", "a", x, y);
-			}
-
-			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
-				// change this to change the sound 
-				//mAudioMsgr.sendMessage("change", "a", x, y);
-			}
+			public void onStartTrackingTouch(SeekBar seekBar) {}
 
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
 				// change this to change the sound 
-				//mAudioMsgr.sendMessage("change", "a", x, y);
+				// get the value form the progress
+				mAudioMsgr.sendFloat("Volume", 0.9f);
 			}
-		});
+		});		
+	}
 
-		AudioMessenger.getInstance(this); // should start the sound up
+	/*
+	 * get the file and change the sound sample
+	 */
+	private void spinnerListener(Spinner spinner) {
+		// TODO Auto-generated method stub
+		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View view,
+					int pos, long id) {
+				// this is selecting the file from the spinner
+				mAudioMsgr.sendNextFileName(pos);
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {}
+		});
 	}
 
 	@Override
@@ -166,45 +167,23 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// matrices, or CV_8UC(n),..., CV_64FC(n) to create multi-channel (up to
 		// CV_MAX_CN channels) matrices.
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
-		buf = new Mat(width, height, CvType.CV_8UC4);
+		mGray = new Mat(height, width, CvType.CV_8UC4);
 		mObjDetector = new BlobDetector();
-		mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
+		//mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
 		mSpectrum = new Mat();
 		mBlobColorRGBA = new Scalar(255);
 		mBlobColorHSV = new Scalar(255);
 		SPECTRUM_SIZE = new Size(200, 64);
-		CONTOUR_COLOR = new Scalar(255, 0, 255, 255);
-		RECT_COLOR = new Scalar(255, 0, 0, 255);
-
-		// Init histogram members.
-		mP1 = new Point();
-		mP2 = new Point();
-		mHistSizeNum = 25;
-		mHist = new Mat();
-		mHistSize = new MatOfInt(mHistSizeNum);
-		mMat0 = new Mat();
-		mRanges = new MatOfFloat(0f, 256f);
-		mChannels = new MatOfInt[] { new MatOfInt(0), new MatOfInt(1),
-				new MatOfInt(2) };
-		mBuf = new float[mHistSizeNum];
-		mColorsRGB = new Scalar[] { new Scalar(200, 0, 0, 255),
-				new Scalar(0, 200, 0, 255), new Scalar(0, 0, 200, 255) };
-		mColorsHue = new Scalar[] { new Scalar(255, 0, 0, 255),
-				new Scalar(255, 60, 0, 255), new Scalar(255, 120, 0, 255),
-				new Scalar(255, 180, 0, 255), new Scalar(255, 240, 0, 255),
-				new Scalar(215, 213, 0, 255), new Scalar(150, 255, 0, 255),
-				new Scalar(85, 255, 0, 255), new Scalar(20, 255, 0, 255),
-				new Scalar(0, 255, 30, 255), new Scalar(0, 255, 85, 255),
-				new Scalar(0, 255, 150, 255), new Scalar(0, 255, 215, 255),
-				new Scalar(0, 234, 255, 255), new Scalar(0, 170, 255, 255),
-				new Scalar(0, 120, 255, 255), new Scalar(0, 60, 255, 255),
-				new Scalar(0, 0, 255, 255), new Scalar(64, 0, 255, 255),
-				new Scalar(120, 0, 255, 255), new Scalar(180, 0, 255, 255),
-				new Scalar(255, 0, 255, 255), new Scalar(255, 0, 215, 255),
-				new Scalar(255, 0, 85, 255), new Scalar(255, 0, 0, 255) };
+		
+        // Create an orb feature detector.
+        mFeatureDetector = FeatureDetector.create(FeatureDetector.ORB);
+        mFeatures = new MatOfKeyPoint();
+        FEATURE_CIRCLE_RADIUS = 4;
+        FEATURE_COLOR = new Scalar(255, 255, 255, 255);
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
+		//mAudioMsgr.sendNextFileName();
 		int cols = mRgba.cols();
 		int rows = mRgba.rows();
 
@@ -271,93 +250,35 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	 */
 	@Override
 	public Mat onCameraFrame(Mat inputFrame) {
-
 		// Grab a frame and process it with the object detector.
 		inputFrame.copyTo(mRgba);
-		mObjDetector.process(mRgba);
-		List<MatOfPoint> contours = mObjDetector.getContours();
-		Log.i(TAG, "Contours count: " + contours.size());
-		Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
 
-		// This is a simple implementation of tracking the bounding shapes.
-		// For now only one sound is played for a single rectangle on the
-		// screen.
-		if (contours.size() > 0) {
-			List<Rect> rectangles = this.createBoundingShapes(contours);
-			this.playRectangleSound(rectangles.get(0));
-		}
-		this.drawRGBHist(inputFrame);
+		this.drawFeatures(inputFrame);
+		double[] val = Core.mean(inputFrame).val;
 
-		// These just show up in the corner of the screen (I think). And show
-		// the color
-		// of the selected point.
-		// Mat colorLabel = mRgba.submat(4, 68, 4, 68);
-		// colorLabel.setTo(mBlobColorRGBA);
+		float grainstart = AudioMessenger.normalize((float)val[0], 1.0f, 0.0f, 255.0f);
+		float graindur = AudioMessenger.normalize((float)val[1], 2000.0f, 10.0f, 255.0f);
+		float grainpitch = AudioMessenger.normalize((float)val[2], 2.0f, 0.3f, 255.0f);
+		
+		mAudioMsgr.sendFloat("grainstart_in", grainstart);
+		mAudioMsgr.sendFloat("graindur_in", graindur);
+		mAudioMsgr.sendFloat("grainpitch_in", grainpitch);
+		 
 		return mRgba;
 	}
-
+	
 	/**
-	 * Draws an RGB histogram based on the input frame. This draws on top of
-	 * mRgb, so make sure to choose the time at which this is called properly.
-	 * 
+	 * Detects and draws the features found in the input frame using the mFeatureDetectorOrb member.
+	 * As of current, this detector uses the ORB feature detector.
 	 * @param inputFrame
 	 */
-	private void drawRGBHist(Mat inputFrame) {
-		// Draw RGB Histogram.
-		Size rgbaSize = mRgba.size();
-		int thickness = (int) (rgbaSize.height / (mHistSizeNum + 10) / 5);
-		int offset = (int) (rgbaSize.height);
-		if (thickness > 5)
-			thickness = 5;
-		for (int i = 0; i < 3; ++i) {
-			// Calculate hist from input frame so as to avoid handling other
-			// input.
-			Imgproc.calcHist(Arrays.asList(inputFrame), mChannels[i], mMat0,
-					mHist, mHistSize, mRanges);
-			Core.normalize(mHist, mHist, rgbaSize.height / 2, 0, Core.NORM_INF);
-			mHist.get(0, 0, mBuf);
-			for (int j = 0; j < mHistSizeNum; ++j) {
-				mP1.y = mP2.y = offset - (i * (mHistSizeNum + 10) + j)
-						* thickness;
-				mP1.x = rgbaSize.width - 1;
-				mP2.x = mP1.x - 2 - (int) mBuf[j];
-				Core.line(mRgba, mP1, mP2, mColorsRGB[i], thickness);
-			}
-		}
-	}
-
-	/**
-	 * Draws the bounding rectangles around all of the passed contours. Draws
-	 * the the main image member "mRgba."
-	 * 
-	 * @param contours
-	 *            The list of contours.
-	 * @return A list of the boundingRectangles created on the screen.
-	 */
-	private List<Rect> createBoundingShapes(List<MatOfPoint> contours) {
-		List<Rect> boundingRectangles = new ArrayList<Rect>(contours.size());
-		for (int i = 0; i < contours.size(); ++i) {
-			Rect boundingRect = Imgproc.boundingRect(contours.get(i));
-			boundingRectangles.add(boundingRect);
-			Core.rectangle(mRgba, boundingRect.tl(), boundingRect.br(),
-					RECT_COLOR);
-		}
-		return boundingRectangles;
-	}
-
-	/**
-	 * Plays a sound according to some bounding rectangle on the screen. The
-	 * method is currently a bit ad-lib, so just passing a single rectangle per
-	 * frame should create a steady sound.
-	 */
-	private void playRectangleSound(Rect rectangle) {
-		if (rectangle != null) {
-			JavaCameraView v = (JavaCameraView) findViewById(R.id.activity_zen_box_view);
-			float x = AudioMessenger.normalize(rectangle.x + rectangle.width
-					/ 2, 0.5f, 1.5f, v.getWidth());
-			float y = AudioMessenger.normalize(rectangle.y + rectangle.height
-					/ 2, 0.3f, 0.8f, v.getHeight());
-			mAudioMsgr.sendMessage("change", "a", x, y);
+	private void drawFeatures(Mat inputFrame) {		
+		// Create gray image for feature detection.
+        Imgproc.cvtColor(inputFrame, mGray, Imgproc.COLOR_RGBA2GRAY);
+		mFeatureDetector.detect(inputFrame, mFeatures);
+		KeyPoint[] points = mFeatures.toArray();  // TODO: This might be slow. Check under profiler.
+		for (KeyPoint kp : points) {
+			Core.circle(mRgba, kp.pt, FEATURE_CIRCLE_RADIUS, FEATURE_COLOR);
 		}
 	}
 
@@ -365,9 +286,8 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	protected void onPause() {
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
-		//need to stop the sound when pause the app
-		mAudioMsgr.cleanup();
 		super.onPause();
+		mAudioMsgr.cleanup();
 	}
 
 	@Override
@@ -377,6 +297,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// camera
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
 				mLoaderCallback);
+		mAudioMsgr = AudioMessenger.getInstance(this);
 	}
 
 	@Override

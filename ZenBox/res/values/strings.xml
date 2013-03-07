@@ -10,11 +10,9 @@
     <string name="drop_down_menu">click here</string>
 
     <string-array name="country_arrays">
-        <item>Change</item>
-        <item>This</item>
-        <item>In</item>
-        <item>res</item>
-        <item>values</item>
-        <item>strings</item>
+        <item>amen_break</item>
+        <item>guitar</item>
+        <item>violin</item>
+        <item>menchoir</item>
     </string-array>
 </resources>

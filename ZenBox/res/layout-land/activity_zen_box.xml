@@ -17,14 +17,44 @@
         <Spinner
             android:id="@+id/spinner"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" 
-            android:prompt="@string/drop_down_menu"
-            android:entries="@array/country_arrays" />
+            android:layout_height="75dp"
+            android:entries="@array/country_arrays"
+            android:prompt="@string/drop_down_menu" />
 
-        <SeekBar
-            android:id="@+id/seekBar"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content" >
+
+            <ImageView
+                android:id="@+id/speaker"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:src="@drawable/speaker_icon" />
+
+            <SeekBar
+                android:id="@+id/volume"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <QuickContactBadge
+                android:id="@+id/quickContactBadge1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <SeekBar
+                android:id="@+id/overlap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
