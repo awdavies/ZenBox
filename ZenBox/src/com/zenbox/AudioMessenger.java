@@ -220,7 +220,7 @@ public class AudioMessenger {
 			registerResource(R.raw.grainvoice, PD, res);
 			registerResource(R.raw.simplereverb, PD, res);
 
-			registerSoundResource(R.raw.vowels2, res);
+			registerSoundResource(R.raw.vowels, res);
 			registerSoundResource(R.raw.violin, res);
 			registerSoundResource(R.raw.guitar, res);
 			registerSoundResource(R.raw.menchoir, res);
