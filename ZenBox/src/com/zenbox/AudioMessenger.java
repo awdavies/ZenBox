@@ -216,16 +216,19 @@ public class AudioMessenger {
 		try {
 			PdBase.subscribe("android");
 
-			patch = registerResource(R.raw.grain, PD, res);
+			patch = registerResource(R.raw.main, PD, res);
+			registerResource(R.raw.grain, PD, res);
 			registerResource(R.raw.grainvoice, PD, res);
 			registerResource(R.raw.simplereverb, PD, res);
+			registerResource(R.raw.velocity_synth, PD, res);
+			registerResource(R.raw.velocity_synth1, PD, res);
+			registerResource(R.raw.velocity_synth2, PD, res);
 
 			registerSoundResource(R.raw.vowels, res);
 			registerSoundResource(R.raw.violin, res);
 			registerSoundResource(R.raw.guitar, res);
 			registerSoundResource(R.raw.menchoir, res);
 			registerSoundResource(R.raw.icke, res);
-			registerSoundResource(R.raw.amen_break, res);
 
 			PdBase.openPatch(patch);
 
