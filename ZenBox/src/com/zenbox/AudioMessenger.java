@@ -143,11 +143,11 @@ public class AudioMessenger {
 
 	/**
 	 * Cycles to the next loaded sample.
-	 * 
+	 *
 	 * @return error code, 0 on success
 	 */
-	public int sendNextFileName() {
-		sampleIndex = (sampleIndex + 1) % samples.size();
+	public int sendNextFileName(int index) {
+		sampleIndex = index;
 		return sendSetFileName(samples.get(sampleIndex));
 	}
 
@@ -155,6 +155,7 @@ public class AudioMessenger {
 	 * Cleans up the audio messenger. To be called upon exiting the activity.
 	 */
 	public void cleanup() {
+		Log.e("ZenBox::AudioMessenger", "We're cleaning up!");
 		try {
 			pdService.stopAudio();
 			act.unbindService(connection);

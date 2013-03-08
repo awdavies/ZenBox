@@ -24,6 +24,10 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 public class ZenBoxActivity extends Activity implements OnTouchListener,
 		CvCameraViewListener {
@@ -44,17 +48,17 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	private Size SPECTRUM_SIZE;
 	private int FEATURE_CIRCLE_RADIUS;
 	private Scalar FEATURE_COLOR;
-
+	
 	// Feature detector.
 	private FeatureDetector mFeatureDetector;
 	private MatOfKeyPoint mFeatures;
-
+	
 	// The audio manager member.
 	private AudioMessenger mAudioMsgr;
-
+	
 	// The main Rgba matrix.
 	private Mat mRgba;
-
+	
 	// An intermediate grayscale matrix meant for mRgba.
 	private Mat mGray;
 
@@ -66,7 +70,9 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			case LoaderCallbackInterface.SUCCESS: {
 				Log.e(TAG, "ZenBox loaded successfully");
 				mOpenCvCameraView.enableView();
-				mOpenCvCameraView.setMaxFrameSize(640, 480);
+				// This may be the perfect size the displaying, change this size
+				// may change the GUI. at land: 720-> width, 640-> height
+				mOpenCvCameraView.setMaxFrameSize(720, 640);
 				mOpenCvCameraView.setOnTouchListener(ZenBoxActivity.this);
 			}
 				break;
@@ -96,9 +102,65 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.activity_zen_box_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
+		
+		Spinner spinner = (Spinner) findViewById(R.id.spinner);
+		spinnerListener(spinner);
+		
+		SeekBar vol = (SeekBar) findViewById(R.id.volume);
+		volumeListener(vol);
+		
+		
 		mAudioMsgr = AudioMessenger.getInstance(this); // should start the sound up
+		mAudioMsgr.sendFloat("volume", 0.8f);
 	}
 
+	/*
+	 * Edit this one in order to change the volume
+	 */
+	private void volumeListener(SeekBar vol) {
+		
+		
+		//vol.setBackgroundColor(Color.rgb(255, 245, 238));
+		vol.setMax(100);
+		vol.setProgress(80);
+		vol.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				// change this to change the sound 
+				// get the value form the progress
+				mAudioMsgr.sendFloat("volume", progress / 100f);
+			}
+		});		
+	}
+
+	/*
+	 * get the file and change the sound sample
+	 */
+	private void spinnerListener(Spinner spinner) {
+		// TODO Auto-generated method stub
+		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View view,
+					int pos, long id) {
+				// this is selecting the file from the spinner
+				mAudioMsgr.sendNextFileName(pos);
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {}
+		});
+	}
+	
+	
 	@Override
 	public void onCameraViewStarted(int width, int height) {
 		// get the data from camera
@@ -113,7 +175,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		mBlobColorRGBA = new Scalar(255);
 		mBlobColorHSV = new Scalar(255);
 		SPECTRUM_SIZE = new Size(200, 64);
-
         // Create an orb feature detector.
         mFeatureDetector = FeatureDetector.create(FeatureDetector.ORB);
         mFeatures = new MatOfKeyPoint();
@@ -122,7 +183,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
-		mAudioMsgr.sendNextFileName();
 		int cols = mRgba.cols();
 		int rows = mRgba.rows();
 
@@ -202,7 +262,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		mAudioMsgr.sendFloat("grainstart_in", grainstart);
 		mAudioMsgr.sendFloat("graindur_in", graindur);
 		mAudioMsgr.sendFloat("grainpitch_in", grainpitch);
-
 		return mRgba;
 	}
 
