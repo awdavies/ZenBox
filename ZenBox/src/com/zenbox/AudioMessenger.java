@@ -134,7 +134,7 @@ public class AudioMessenger {
 	 * @return error code, 0 on success
 	 */
 	public int sendNextFileName(int index) {
-		sampleIndex = index;//(sampleIndex + 1) % samples.size();
+		sampleIndex = index;
 		return sendSetFileName(samples.get(sampleIndex));
 	}
 
@@ -168,6 +168,7 @@ public class AudioMessenger {
 			InputStream ina1 = res.openRawResource(R.raw.guitar);
 			InputStream ina2 = res.openRawResource(R.raw.violin);
 			InputStream ina3 = res.openRawResource(R.raw.menchoir);
+			InputStream ina4 = res.openRawResource(R.raw.dangel);
 			
 			// Load all of the resources into the cachedir
 			patch = IoUtils.extractResource(inm, "grain.pd", act.getCacheDir());
@@ -181,6 +182,8 @@ public class AudioMessenger {
 			samples.add("violin.wav");
 			IoUtils.extractResource(ina3, "menchoir.wav", act.getCacheDir());
 			samples.add("menchoir.wav");
+			IoUtils.extractResource(ina4, "dangel.wav", act.getCacheDir());
+			samples.add("dangel.wav");
 			
 			PdBase.openPatch(patch);
 			

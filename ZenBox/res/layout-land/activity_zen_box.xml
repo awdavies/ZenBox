@@ -34,28 +34,13 @@
             <SeekBar
                 android:id="@+id/volume"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:max="100" />
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
-
-            <QuickContactBadge
-                android:id="@+id/quickContactBadge1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <SeekBar
-                android:id="@+id/overlap"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-        </LinearLayout>
-
+       
+        
     </LinearLayout>
 
 </LinearLayout>

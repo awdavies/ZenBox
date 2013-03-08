@@ -17,7 +17,6 @@ import org.opencv.features2d.KeyPoint;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -107,12 +106,12 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		Spinner spinner = (Spinner) findViewById(R.id.spinner);
 		spinnerListener(spinner);
 		
-
 		SeekBar vol = (SeekBar) findViewById(R.id.volume);
 		volumeListener(vol);
 		
 		
 		mAudioMsgr = AudioMessenger.getInstance(this); // should start the sound up
+		mAudioMsgr.sendFloat("volume", 0.8f);
 	}
 
 	/*
@@ -123,6 +122,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		
 		//vol.setBackgroundColor(Color.rgb(255, 245, 238));
 		vol.setMax(100);
+		vol.setProgress(80);
 		vol.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
 			@Override
@@ -136,7 +136,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 					boolean fromUser) {
 				// change this to change the sound 
 				// get the value form the progress
-				mAudioMsgr.sendFloat("Volume", 0.9f);
+				mAudioMsgr.sendFloat("volume", progress / 100f);
 			}
 		});		
 	}
@@ -159,7 +159,8 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			public void onNothingSelected(AdapterView<?> arg0) {}
 		});
 	}
-
+	
+	
 	@Override
 	public void onCameraViewStarted(int width, int height) {
 		// get the data from camera
