@@ -175,7 +175,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		mBlobColorRGBA = new Scalar(255);
 		mBlobColorHSV = new Scalar(255);
 		SPECTRUM_SIZE = new Size(200, 64);
-		
         // Create an orb feature detector.
         mFeatureDetector = FeatureDetector.create(FeatureDetector.ORB);
         mFeatures = new MatOfKeyPoint();
@@ -184,7 +183,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
-		//mAudioMsgr.sendNextFileName();
 		int cols = mRgba.cols();
 		int rows = mRgba.rows();
 
@@ -260,14 +258,13 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		float grainstart = AudioMessenger.normalize((float)val[0], 1.0f, 0.0f, 255.0f);
 		float graindur = AudioMessenger.normalize((float)val[1], 2000.0f, 10.0f, 255.0f);
 		float grainpitch = AudioMessenger.normalize((float)val[2], 2.0f, 0.3f, 255.0f);
-		
+
 		mAudioMsgr.sendFloat("grainstart_in", grainstart);
 		mAudioMsgr.sendFloat("graindur_in", graindur);
 		mAudioMsgr.sendFloat("grainpitch_in", grainpitch);
-		 
 		return mRgba;
 	}
-	
+
 	/**
 	 * Detects and draws the features found in the input frame using the mFeatureDetectorOrb member.
 	 * As of current, this detector uses the ORB feature detector.
