@@ -3,7 +3,6 @@ package com.zenbox;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 
 import org.puredata.android.service.PdService;
 import org.puredata.core.PdBase;
@@ -39,13 +38,8 @@ public class AudioMessenger {
 
 	private Activity act;
 
-	private ArrayList<String> samples;
-	private int sampleIndex;
-
 	private AudioMessenger(Activity act) {
 		this.act = act;
-		samples = new ArrayList<String>();
-		sampleIndex = 0;
 		connection = new ServiceConnection() {
 			@Override
 			public void onServiceConnected(ComponentName name, IBinder svc) {
@@ -137,18 +131,12 @@ public class AudioMessenger {
 	 * @return error code, 0 on success
 	 */
 	public int sendSetFileName(String fileName) {
+		if (!fileName.endsWith(".wav")) {
+			fileName += ".wav";
+		}
+
 		return PdBase.sendMessage("setfilename", "read", new Object[] {
 				"-resize", fileName, "source-array" });
-	}
-
-	/**
-	 * Cycles to the next loaded sample.
-	 *
-	 * @return error code, 0 on success
-	 */
-	public int sendNextFileName(int index) {
-		sampleIndex = index;
-		return sendSetFileName(samples.get(sampleIndex));
 	}
 
 	/**
@@ -188,26 +176,6 @@ public class AudioMessenger {
 	}
 
 	/**
-	 * Given a resource ID for a wav file, load in the file and add it to the
-	 * samples list
-	 * 
-	 * @param id
-	 *            Resource ID for the wav file
-	 * @param res
-	 *            Resources instance for this activity
-	 * @throws NotFoundException
-	 *             If the given ID doesn't point to a resource
-	 * @throws IOException
-	 *             If the file couldn't be extracted into the cache
-	 */
-	private File registerSoundResource(int id, Resources res)
-			throws NotFoundException, IOException {
-		File f = registerResource(id, WAV, res);
-		samples.add(f.getName());
-		return f;
-	}
-
-	/**
 	 * Load samples/patch files and initialize the PD patch
 	 */
 	private void initPd() {
@@ -225,11 +193,12 @@ public class AudioMessenger {
 			registerResource(R.raw.velocity_synth1, PD, res);
 			registerResource(R.raw.velocity_synth2, PD, res);
 
-			registerSoundResource(R.raw.vowels, res);
-			registerSoundResource(R.raw.violin, res);
-			registerSoundResource(R.raw.guitar, res);
-			registerSoundResource(R.raw.menchoir, res);
-			registerSoundResource(R.raw.icke, res);
+			registerResource(R.raw.vowels, WAV, res);
+			registerResource(R.raw.violin, WAV, res);
+			registerResource(R.raw.guitar, WAV, res);
+			registerResource(R.raw.menchoir, WAV, res);
+			registerResource(R.raw.dangel, WAV, res);
+			registerResource(R.raw.icke, WAV, res);
 
 			PdBase.openPatch(patch);
 
@@ -237,9 +206,9 @@ public class AudioMessenger {
 
 			// -1 means use default, which should work for us.
 			pdService.initAudio(-1, -1, -1, -1);
-			sendSetFileName(samples.get(0));
 			pdService.startAudio(new Intent(act, ZenBoxActivity.class),
 					R.drawable.icon, name, name);
+			sendFloat("volume", 0.8f);
 		} catch (IOException e) {
 			Log.e(TAG, e.toString());
 		}

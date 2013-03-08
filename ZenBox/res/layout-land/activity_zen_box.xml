@@ -18,7 +18,7 @@
             android:id="@+id/spinner"
             android:layout_width="match_parent"
             android:layout_height="75dp"
-            android:entries="@array/country_arrays"
+            android:entries="@array/sample_name_list"
             android:prompt="@string/drop_down_menu" />
 
         <LinearLayout

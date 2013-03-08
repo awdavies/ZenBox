@@ -9,11 +9,20 @@
     <string name="other1">other1</string>
     <string name="drop_down_menu">click here</string>
 
-    <string-array name="country_arrays">
-        <item>amen_break</item>
-        <item>guitar</item>
+    <string-array name="sample_file_list">
+        <item>vowels</item>
         <item>violin</item>
         <item>menchoir</item>
-        <item>angel</item>
+        <item>guitar</item>
+        <item>dangel</item>
+        <item>icke</item>
+    </string-array>
+    <string-array name="sample_name_list">
+        <item>Vowel Sounds</item>
+        <item>Violin</item>
+        <item>Men\'s Choir</item>
+        <item>Guitar</item>
+        <item>Angelic Choir</item>
+        <item>Synth</item>
     </string-array>
 </resources>

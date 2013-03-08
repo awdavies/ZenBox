@@ -27,7 +27,6 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 public class ZenBoxActivity extends Activity implements OnTouchListener,
 		CvCameraViewListener {
@@ -67,19 +66,14 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		@Override
 		public void onManagerConnected(int status) {
 			switch (status) {
-			case LoaderCallbackInterface.SUCCESS: {
-				Log.e(TAG, "ZenBox loaded successfully");
-				mOpenCvCameraView.enableView();
-				// This may be the perfect size the displaying, change this size
-				// may change the GUI. at land: 720-> width, 640-> height
-				mOpenCvCameraView.setMaxFrameSize(720, 640);
-				mOpenCvCameraView.setOnTouchListener(ZenBoxActivity.this);
-			}
-				break;
-			default: {
-				super.onManagerConnected(status);
-			}
-				break;
+				case LoaderCallbackInterface.SUCCESS:
+					Log.e(TAG, "ZenBox loaded successfully");
+					mOpenCvCameraView.enableView();
+					mOpenCvCameraView.setOnTouchListener(ZenBoxActivity.this);
+					break;
+				default:
+					super.onManagerConnected(status);
+					break;
 			}
 		}
 	};
@@ -101,25 +95,24 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		setContentView(R.layout.activity_zen_box);
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.activity_zen_box_view);
+		mOpenCvCameraView.setMaxFrameSize(640, 480);
 		mOpenCvCameraView.setCvCameraViewListener(this);
-		
+
 		Spinner spinner = (Spinner) findViewById(R.id.spinner);
 		spinnerListener(spinner);
-		
+
 		SeekBar vol = (SeekBar) findViewById(R.id.volume);
 		volumeListener(vol);
-		
-		
+
 		mAudioMsgr = AudioMessenger.getInstance(this); // should start the sound up
-		mAudioMsgr.sendFloat("volume", 0.8f);
+		mAudioMsgr.sendSetFileName(getResources().getStringArray(
+				R.array.sample_file_list)[0]);
 	}
 
 	/*
 	 * Edit this one in order to change the volume
 	 */
 	private void volumeListener(SeekBar vol) {
-		
-		
 		//vol.setBackgroundColor(Color.rgb(255, 245, 238));
 		vol.setMax(100);
 		vol.setProgress(80);
@@ -138,7 +131,7 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 				// get the value form the progress
 				mAudioMsgr.sendFloat("volume", progress / 100f);
 			}
-		});		
+		});
 	}
 
 	/*
@@ -152,15 +145,16 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 			public void onItemSelected(AdapterView<?> parent, View view,
 					int pos, long id) {
 				// this is selecting the file from the spinner
-				mAudioMsgr.sendNextFileName(pos);
+				mAudioMsgr.sendSetFileName(getResources().getStringArray(
+						R.array.sample_file_list)[pos]);
 			}
 
 			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {}
+			public void onNothingSelected(AdapterView<?> arg0) {
+			}
 		});
 	}
-	
-	
+
 	@Override
 	public void onCameraViewStarted(int width, int height) {
 		// get the data from camera
