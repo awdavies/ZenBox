@@ -236,6 +236,7 @@ public class AudioMessenger {
 
 			// -1 means use default, which should work for us.
 			pdService.initAudio(-1, -1, -1, -1);
+			sendSetFileName(samples.get(0));
 			pdService.startAudio(new Intent(act, ZenBoxActivity.class),
 					R.drawable.icon, name, name);
 		} catch (IOException e) {
