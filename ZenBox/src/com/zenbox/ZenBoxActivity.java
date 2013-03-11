@@ -139,11 +139,12 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	private void spinnerListener(Spinner spinner) {
 		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
+			// Select file from spinner
 			@Override
 			public void onItemSelected(AdapterView<?> parent, View view,
 					int pos, long id) {
-				// this is selecting the file from the spinner
-				
+				// If the selected item is the last one ("No Sample"), then turn
+				// off the granular synth.  Otherwise, set the sample and turn it on.
 				if (pos == mSampleCount) {
 					mAudioMsgr.sendFloat("gr_go", 0.0f);
 				} else {
