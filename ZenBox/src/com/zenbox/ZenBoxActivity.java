@@ -8,72 +8,69 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfKeyPoint;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Size;
-import org.opencv.features2d.FeatureDetector;
-import org.opencv.features2d.KeyPoint;
-import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 
-public class ZenBoxActivity extends Activity implements OnTouchListener,
-		CvCameraViewListener {
+public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	// tag for this class
 	private static final String TAG = "ZenBox::Activity";
+	
+	private static final Size IMAGE_SIZE = new Size(640, 480);
+	
 	// open CV camera
 	private CameraBridgeViewBase mOpenCvCameraView;
-
-	// Used to detect large spaces of the same color. For no there will only be
-	// one section
-	// of the image detected at a time. The following members are used to
-	// display/locate this
-	// blob.
-	private BlobDetector mObjDetector;
-	private Mat mSpectrum;
-	private Scalar mBlobColorRGBA;
-	private Scalar mBlobColorHSV;
-	private Size SPECTRUM_SIZE;
-	private int FEATURE_CIRCLE_RADIUS;
-	private Scalar FEATURE_COLOR;
 	
-	// Feature detector.
-	private FeatureDetector mFeatureDetector;
-	private MatOfKeyPoint mFeatures;
+	private int mFrames = 0; // the number of frames passed.
+	
+	// Feature detector goodies.
+	private MatOfPoint2f mFeatures;
+	private MatOfPoint2f mPrevFeatures;
+	
+	// Pyramid matrices for optical flow detection.
+	private Mat mPrevPyr;
+	private Mat mCurPyr;
+	
+	// The average flow vector
+	private int[] mFlowVector;
+	
+	private int mSampleCount;
 	
 	// The audio manager member.
 	private AudioMessenger mAudioMsgr;
 	
 	// The main Rgba matrix.
 	private Mat mRgba;
-	
+	private Mat mPrevRgba;
 	// An intermediate grayscale matrix meant for mRgba.
 	private Mat mGray;
+	private Mat mPrevGray;
 
 	// need this callback in order to enable the openCV camera
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
 		@Override
 		public void onManagerConnected(int status) {
 			switch (status) {
-				case LoaderCallbackInterface.SUCCESS:
-					Log.e(TAG, "ZenBox loaded successfully");
+				case LoaderCallbackInterface.SUCCESS: {
+					Log.i(TAG, "ZenBox loaded successfully");
+					System.loadLibrary("zen_box");
 					mOpenCvCameraView.enableView();
-					mOpenCvCameraView.setOnTouchListener(ZenBoxActivity.this);
+					mOpenCvCameraView.setMaxFrameSize((int)IMAGE_SIZE.width, (int)IMAGE_SIZE.height);
 					break;
-				default:
+				}
+				default: {
 					super.onManagerConnected(status);
 					break;
+				}
 			}
 		}
 	};
@@ -95,8 +92,9 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		setContentView(R.layout.activity_zen_box);
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.activity_zen_box_view);
-		mOpenCvCameraView.setMaxFrameSize(640, 480);
 		mOpenCvCameraView.setCvCameraViewListener(this);
+		
+		mSampleCount = getResources().getStringArray(R.array.sample_file_list).length;
 
 		Spinner spinner = (Spinner) findViewById(R.id.spinner);
 		spinnerListener(spinner);
@@ -138,15 +136,22 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 	 * get the file and change the sound sample
 	 */
 	private void spinnerListener(Spinner spinner) {
-		// TODO Auto-generated method stub
+
 		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
+			// Select file from spinner
 			@Override
 			public void onItemSelected(AdapterView<?> parent, View view,
 					int pos, long id) {
-				// this is selecting the file from the spinner
-				mAudioMsgr.sendSetFileName(getResources().getStringArray(
-						R.array.sample_file_list)[pos]);
+				// If the selected item is the last one ("No Sample"), then turn
+				// off the granular synth.  Otherwise, set the sample and turn it on.
+				if (pos == mSampleCount) {
+					mAudioMsgr.sendFloat("gr_go", 0.0f);
+				} else {
+					mAudioMsgr.sendSetFileName(getResources().getStringArray(
+							R.array.sample_file_list)[pos]);
+					mAudioMsgr.sendFloat("gr_go", 1.0f);
+				}
 			}
 
 			@Override
@@ -162,76 +167,23 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// matrices, or CV_8UC(n),..., CV_64FC(n) to create multi-channel (up to
 		// CV_MAX_CN channels) matrices.
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
-		mGray = new Mat(height, width, CvType.CV_8UC4);
-		mObjDetector = new BlobDetector();
-		//mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
-		mSpectrum = new Mat();
-		mBlobColorRGBA = new Scalar(255);
-		mBlobColorHSV = new Scalar(255);
-		SPECTRUM_SIZE = new Size(200, 64);
-        // Create an orb feature detector.
-        mFeatureDetector = FeatureDetector.create(FeatureDetector.ORB);
-        mFeatures = new MatOfKeyPoint();
-        FEATURE_CIRCLE_RADIUS = 4;
-        FEATURE_COLOR = new Scalar(255, 255, 255, 255);
-	}
 
-	public boolean onTouch(View v, MotionEvent event) {
-		int cols = mRgba.cols();
-		int rows = mRgba.rows();
-
-		int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
-		int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
-
-		int x = (int) event.getX() - xOffset;
-		int y = (int) event.getY() - yOffset;
-
-		Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
-
-		if ((x < 0) || (y < 0) || (x > cols) || (y > rows))
-			return false;
-
-		Rect touchedRect = new Rect();
-
-		touchedRect.x = (x > 4) ? x - 4 : 0;
-		touchedRect.y = (y > 4) ? y - 4 : 0;
-
-		touchedRect.width = (x + 4 < cols) ? x + 4 - touchedRect.x : cols
-				- touchedRect.x;
-		touchedRect.height = (y + 4 < rows) ? y + 4 - touchedRect.y : rows
-				- touchedRect.y;
-
-		Mat touchedRegionRgba = mRgba.submat(touchedRect);
-
-		Mat touchedRegionHsv = new Mat();
-		Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv,
-				Imgproc.COLOR_RGB2HSV_FULL);
-
-		// Calculate average color of touched region
-		mBlobColorHSV = Core.sumElems(touchedRegionHsv);
-		int pointCount = touchedRect.width * touchedRect.height;
-		for (int i = 0; i < mBlobColorHSV.val.length; i++)
-			mBlobColorHSV.val[i] /= pointCount;
-
-		mBlobColorRGBA = converScalarHsv2Rgba(mBlobColorHSV);
-
-		Log.i(TAG, "Touched rgba color: (" + mBlobColorRGBA.val[0] + ", "
-				+ mBlobColorRGBA.val[1] + ", " + mBlobColorRGBA.val[2] + ", "
-				+ mBlobColorRGBA.val[3] + ")");
-
-		mObjDetector.setHsvColor(mBlobColorHSV);
-
-		Imgproc.resize(mObjDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE);
-
-		touchedRegionRgba.release();
-		touchedRegionHsv.release();
-
-		return false; // don't need subsequent touch events
+		mPrevRgba = new Mat(height, width, CvType.CV_8UC4);
+		mGray = new Mat(height, width, CvType.CV_8UC1);
+		mPrevGray = new Mat(height, width, CvType.CV_8UC1);
+		mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
+		mPrevFeatures = new MatOfPoint2f();
+		mFeatures = new MatOfPoint2f();
+		mFlowVector = new int[2];
 	}
 
 	@Override
 	public void onCameraViewStopped() {
 		mRgba.release();
+		mPrevFeatures.release();
+		mPrevRgba.release();
+		mFeatures.release();
+		mGray.release();
 	}
 
 	/*
@@ -246,7 +198,6 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		// Grab a frame and process it with the object detector.
 		inputFrame.copyTo(mRgba);
 
-		this.drawFeatures(inputFrame);
 		double[] val = Core.mean(inputFrame).val;
 
 		float grainstart = AudioMessenger.normalize((float)val[0], 1.0f, 0.0f, 255.0f);
@@ -256,21 +207,30 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		mAudioMsgr.sendFloat("grainstart_in", grainstart);
 		mAudioMsgr.sendFloat("graindur_in", graindur);
 		mAudioMsgr.sendFloat("grainpitch_in", grainpitch);
-		return mRgba;
-	}
-
-	/**
-	 * Detects and draws the features found in the input frame using the mFeatureDetectorOrb member.
-	 * As of current, this detector uses the ORB feature detector.
-	 * @param inputFrame
-	 */
-	private void drawFeatures(Mat inputFrame) {		
-		// Create gray image for feature detection.
-        Imgproc.cvtColor(inputFrame, mGray, Imgproc.COLOR_RGBA2GRAY);
-		mFeatureDetector.detect(inputFrame, mFeatures);
-		KeyPoint[] points = mFeatures.toArray();  // TODO: This might be slow. Check under profiler.
-		for (KeyPoint kp : points) {
-			Core.circle(mRgba, kp.pt, FEATURE_CIRCLE_RADIUS, FEATURE_COLOR);
+		
+		// Only detect movement every few frames.
+		if (mFrames == 1) {
+			inputFrame.copyTo(mRgba);
+			mFrames = 0;
+			OpticalFlow(
+					mRgba.getNativeObjAddr(),
+					mPrevGray.getNativeObjAddr(),
+					mGray.getNativeObjAddr(),
+					mPrevFeatures.getNativeObjAddr(),
+					mFeatures.getNativeObjAddr(),
+					mFlowVector);
+			Log.e(TAG, "flow xy: (" + mFlowVector[0] + ", " + mFlowVector[1] + ")");
+			mAudioMsgr.sendFloat("x", mFlowVector[0] / 400.0f);
+			mAudioMsgr.sendFloat("y", mFlowVector[1] / 500.0f);
+			return mRgba;
+		} else {
+			inputFrame.copyTo(mPrevRgba);
+			DetectFeatures(mPrevRgba.getNativeObjAddr(), 
+					mPrevGray.getNativeObjAddr(), 
+					mPrevFeatures.getNativeObjAddr(),
+					mPrevRgba.getNativeObjAddr());
+			++mFrames;
+			return mPrevRgba;
 		}
 	}
 
@@ -300,12 +260,9 @@ public class ZenBoxActivity extends Activity implements OnTouchListener,
 		mAudioMsgr.cleanup();
 	}
 
-	private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
-		Mat pointMatRgba = new Mat();
-		Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
-		Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL,
-				4);
-		return new Scalar(pointMatRgba.get(0, 0));
-	}
-
+	/////// native methods (documentation in zen_box.hpp ///////
+	public native void OpticalFlow(long addrCurMat, long addrPrevMatGray,
+			long addrCurMatGray, long addrPrevFeat, long addrCurFeat, int[] flowVector);
+	
+	public native void DetectFeatures(long addrImg, long addrGrayImg, long addrFeatures, long addrFrame);
 }

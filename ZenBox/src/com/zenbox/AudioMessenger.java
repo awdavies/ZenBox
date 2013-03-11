@@ -191,7 +191,7 @@ public class AudioMessenger {
 			registerResource(R.raw.simplereverb, PD, res);
 			registerResource(R.raw.velocity_synth, PD, res);
 			registerResource(R.raw.velocity_synth1, PD, res);
-			registerResource(R.raw.velocity_synth2, PD, res);
+			registerResource(R.raw.string, PD, res);
 
 			registerResource(R.raw.vowels, WAV, res);
 			registerResource(R.raw.violin, WAV, res);
@@ -217,4 +217,7 @@ public class AudioMessenger {
 	public static float normalize(float in, float oMax, float oMin, float inMax) {
 		return oMin + in * (oMax - oMin) / inMax;
 	}
+	
+	// Native method for finding optical flow within the image.
+	public native void OpticalFlow();
 }

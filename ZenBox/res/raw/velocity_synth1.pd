@@ -6,7 +6,7 @@
 #X obj 99 145 outlet~;
 #X obj 70 -52 inlet;
 #X obj 71 -26 t b f;
-#X msg 126 38 0 \, 0.5 60 0 \, 0 100 100;
+#X msg 126 38 0 \, 0.9 60 0 \, 0 100 100;
 #X connect 0 0 1 0;
 #X connect 1 0 3 0;
 #X connect 2 0 3 1;
