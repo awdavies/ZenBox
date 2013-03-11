@@ -17,4 +17,4 @@ obj/
 local.properties
 project.properties
 .classpath
-
+.DS_Store

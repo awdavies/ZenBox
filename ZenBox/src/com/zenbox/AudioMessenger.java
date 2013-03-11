@@ -217,7 +217,4 @@ public class AudioMessenger {
 	public static float normalize(float in, float oMax, float oMin, float inMax) {
 		return oMin + in * (oMax - oMin) / inMax;
 	}
-	
-	// Native method for finding optical flow within the image.
-	public native void OpticalFlow();
 }
