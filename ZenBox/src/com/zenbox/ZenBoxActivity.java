@@ -2,20 +2,24 @@ package com.zenbox;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
-
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Size;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.SeekBar;
+import android.widget.Spinner;
 
 public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	// tag for this class
@@ -36,6 +40,11 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	private Mat mPrevPyr;
 	private Mat mCurPyr;
 	
+	// The average flow vector
+	private int[] mFlowVector;
+	
+	private int mSampleCount;
+	
 	// The audio manager member.
 	private AudioMessenger mAudioMsgr;
 	
@@ -51,17 +60,17 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		@Override
 		public void onManagerConnected(int status) {
 			switch (status) {
-			case LoaderCallbackInterface.SUCCESS: {
-				Log.i(TAG, "ZenBox loaded successfully");
-				System.loadLibrary("zen_box");
-				mOpenCvCameraView.enableView();
-				mOpenCvCameraView.setMaxFrameSize((int)IMAGE_SIZE.width, (int)IMAGE_SIZE.height);
-			}
-				break;
-			default: {
-				super.onManagerConnected(status);
-			}
-				break;
+				case LoaderCallbackInterface.SUCCESS: {
+					Log.i(TAG, "ZenBox loaded successfully");
+					System.loadLibrary("zen_box");
+					mOpenCvCameraView.enableView();
+					mOpenCvCameraView.setMaxFrameSize((int)IMAGE_SIZE.width, (int)IMAGE_SIZE.height);
+					break;
+				}
+				default: {
+					super.onManagerConnected(status);
+					break;
+				}
 			}
 		}
 	};
@@ -83,8 +92,71 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		setContentView(R.layout.activity_zen_box);
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.activity_zen_box_view);
+		//mOpenCvCameraView.setMaxFrameSize(640, 480);
 		mOpenCvCameraView.setCvCameraViewListener(this);
-		AudioMessenger.getInstance(this); // should start the sound up
+		
+		mSampleCount = getResources().getStringArray(R.array.sample_file_list).length;
+
+		Spinner spinner = (Spinner) findViewById(R.id.spinner);
+		spinnerListener(spinner);
+
+		SeekBar vol = (SeekBar) findViewById(R.id.volume);
+		volumeListener(vol);
+
+		mAudioMsgr = AudioMessenger.getInstance(this); // should start the sound up
+		mAudioMsgr.sendSetFileName(getResources().getStringArray(
+				R.array.sample_file_list)[0]);
+	}
+
+	/*
+	 * Edit this one in order to change the volume
+	 */
+	private void volumeListener(SeekBar vol) {
+		//vol.setBackgroundColor(Color.rgb(255, 245, 238));
+		vol.setMax(100);
+		vol.setProgress(80);
+		vol.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				// change this to change the sound 
+				// get the value form the progress
+				mAudioMsgr.sendFloat("volume", progress / 100f);
+			}
+		});
+	}
+
+	/*
+	 * get the file and change the sound sample
+	 */
+	private void spinnerListener(Spinner spinner) {
+		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View view,
+					int pos, long id) {
+				// this is selecting the file from the spinner
+				
+				if (pos == mSampleCount) {
+					mAudioMsgr.sendFloat("gr_go", 0.0f);
+				} else {
+					mAudioMsgr.sendSetFileName(getResources().getStringArray(
+							R.array.sample_file_list)[pos]);
+					mAudioMsgr.sendFloat("gr_go", 1.0f);
+				}
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+			}
+		});
 	}
 
 	@Override
@@ -94,12 +166,14 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		// matrices, or CV_8UC(n),..., CV_64FC(n) to create multi-channel (up to
 		// CV_MAX_CN channels) matrices.
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
+
 		mPrevRgba = new Mat(height, width, CvType.CV_8UC4);
 		mGray = new Mat(height, width, CvType.CV_8UC1);
 		mPrevGray = new Mat(height, width, CvType.CV_8UC1);
 		mAudioMsgr = AudioMessenger.getInstance(ZenBoxActivity.this);
 		mPrevFeatures = new MatOfPoint2f();
 		mFeatures = new MatOfPoint2f();
+		mFlowVector = new int[2];
 	}
 
 	@Override
@@ -120,6 +194,19 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	 */
 	@Override
 	public Mat onCameraFrame(Mat inputFrame) {
+		// Grab a frame and process it with the object detector.
+		inputFrame.copyTo(mRgba);
+
+		double[] val = Core.mean(inputFrame).val;
+
+		float grainstart = AudioMessenger.normalize((float)val[0], 1.0f, 0.0f, 255.0f);
+		float graindur = AudioMessenger.normalize((float)val[1], 2000.0f, 10.0f, 255.0f);
+		float grainpitch = AudioMessenger.normalize((float)val[2], 2.0f, 0.3f, 255.0f);
+
+		mAudioMsgr.sendFloat("grainstart_in", grainstart);
+		mAudioMsgr.sendFloat("graindur_in", graindur);
+		mAudioMsgr.sendFloat("grainpitch_in", grainpitch);
+		
 		// Only detect movement every few frames.
 		if (mFrames == 1) {
 			inputFrame.copyTo(mRgba);
@@ -129,7 +216,11 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 					mPrevGray.getNativeObjAddr(),
 					mGray.getNativeObjAddr(),
 					mPrevFeatures.getNativeObjAddr(),
-					mFeatures.getNativeObjAddr());
+					mFeatures.getNativeObjAddr(),
+					mFlowVector);
+			Log.e(TAG, "flow xy: (" + mFlowVector[0] + ", " + mFlowVector[1] + ")");
+			mAudioMsgr.sendFloat("x", mFlowVector[0] / 400.0f);
+			mAudioMsgr.sendFloat("y", mFlowVector[1] / 500.0f);
 			return mRgba;
 		} else {
 			inputFrame.copyTo(mPrevRgba);
@@ -147,6 +238,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
 		super.onPause();
+		mAudioMsgr.cleanup();
 	}
 
 	@Override
@@ -156,6 +248,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		// camera
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
 				mLoaderCallback);
+		mAudioMsgr = AudioMessenger.getInstance(this);
 	}
 
 	@Override
@@ -166,10 +259,9 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		mAudioMsgr.cleanup();
 	}
 
-	
 	/////// native methods (documentation in zen_box.hpp ///////
 	public native void OpticalFlow(long addrCurMat, long addrPrevMatGray,
-			long addrCurMatGray, long addrPrevFeat, long addrCurFeat);
+			long addrCurMatGray, long addrPrevFeat, long addrCurFeat, int[] flowVector);
 	
 	public native void DetectFeatures(long addrImg, long addrGrayImg, long addrFeatures, long addrFrame);
 }

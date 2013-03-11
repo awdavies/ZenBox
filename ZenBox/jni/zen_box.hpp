@@ -59,7 +59,7 @@ extern "C" {
  */
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
 		jobject, jlong addrCurMat, jlong addrPrevMatGray,
-		jlong addrCurMatGray, jlong addrPrevFeat, jlong addrCurFeat);
+		jlong addrCurMatGray, jlong addrPrevFeat, jlong addrCurFeat, jintArray flowVector);
 
 /**
  * TODO: Document me properly!

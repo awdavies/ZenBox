@@ -70,16 +70,20 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_DetectFeatures(JNIEnv*,
 		draw_flow_vector(&frame);
 }
 
-JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
-		jobject, jlong addrCurImg, jlong addrPrevGrayImg, jlong addrCurGrayImg, jlong addrPrevFeatures, jlong addrPredictedFeatures) {
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv* env,
+		jobject, jlong addrCurImg, jlong addrPrevGrayImg, jlong addrCurGrayImg, jlong addrPrevFeatures, jlong addrPredictedFeatures, jintArray flowVector) {
 	static vector<float> error(MAX_FEATURES);
 	static Mat pyrDownMat;
+	jint *nativeFlowVector;
 
 	// Prepare data.
 	Mat& curImg = *(Mat *) addrCurImg;
 	Mat& prevGrayImg = *(Mat *) addrPrevGrayImg;
 	Mat& curGrayImg = *(Mat *) addrCurGrayImg;
 	Mat& prevFeatures = *(Mat *) addrPrevFeatures;
+	nativeFlowVector = env->GetIntArrayElements(flowVector, NULL);
+	nativeFlowVector[0] = flow_vector_q.x;
+	nativeFlowVector[1] = flow_vector_q.y;
 
 	// Detect the features of the previous image, then predict the location
 	// on the next image.

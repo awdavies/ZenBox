@@ -2,7 +2,28 @@
 <resources>
 
     <string name="app_name">ZenBox</string>
-    <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
+    <string name="swap_camera">swap</string>
+    <string name="file1">File1</string>
+    <string name="file2">File2</string>
+    <string name="other1">other1</string>
+    <string name="drop_down_menu">click here</string>
 
+    <string-array name="sample_file_list">
+        <item>vowels</item>
+        <item>violin</item>
+        <item>menchoir</item>
+        <item>guitar</item>
+        <item>dangel</item>
+        <item>icke</item>
+    </string-array>
+    <string-array name="sample_name_list">
+        <item>Vowel Sounds</item>
+        <item>Violin</item>
+        <item>Men\'s Choir</item>
+        <item>Guitar</item>
+        <item>Angelic Choir</item>
+        <item>Synth</item>
+        <item>No Sample</item>
+    </string-array>
 </resources>
