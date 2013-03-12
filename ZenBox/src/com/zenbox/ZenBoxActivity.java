@@ -112,7 +112,6 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		volumeListener(vol);
 
 		mAudioMsgr = AudioMessenger.getInstance(this); // should start the sound up
-		mZoneProcessor = ZoneProcessor.getInstance();
 		mZoneEnabled = false;
 		mAudioMsgr.sendSetFileName(getResources().getStringArray(
 				R.array.sample_file_list)[0]);
@@ -214,7 +213,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		// matrices, or CV_8UC(n),..., CV_64FC(n) to create multi-channel (up to
 		// CV_MAX_CN channels) matrices.
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
-
+		mZoneProcessor = new ZoneProcessor(height, width);
 		mPrevRgba = new Mat(height, width, CvType.CV_8UC4);
 		mGray = new Mat(height, width, CvType.CV_8UC1);
 		mPrevGray = new Mat(height, width, CvType.CV_8UC1);
