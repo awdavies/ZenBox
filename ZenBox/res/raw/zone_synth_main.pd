@@ -3,24 +3,23 @@
 #X obj 523 126 simplereverb;
 #X obj 604 143 tabwrite~ wavout;
 #X obj 604 121 metro 100;
-#X obj 604 101 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+#X obj 604 101 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
 1;
 #N canvas 0 0 450 300 (subpatch) 0;
 #X array wavout 100 float 0;
 #X coords 0 1 99 -1 200 140 1;
 #X restore 510 -328 graph;
-#X obj 561 42 vsl 15 30 1500 4500 0 0 empty empty empty 0 -9 0 10 -262144
--1 -1 2343 1;
+#X obj 561 42 vsl 15 30 800 4500 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 1496 1;
 #X obj 561 18 r hip_amt;
 #X obj 581 40 r lop_amt;
-#X obj 581 64 vsl 15 30 4000 18000 0 0 empty empty empty 0 -9 0 10
--262144 -1 -1 2343 1;
+#X obj 581 64 vsl 15 30 10000 18000 0 0 empty empty empty 0 -9 0 10
+-262144 -1 -1 1496 1;
 #X obj 524 102 lop~ 10000;
 #X obj 510 80 hip~ 1500;
 #N canvas 173 368 450 300 filter_mod 0;
 #X obj 50 22 inlet trigger;
-#X obj 49 175 line;
-#X msg 50 130 4500 5000;
+#X obj 50 174 line;
 #X obj 50 64 metro 6000;
 #X obj 50 44 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1 1
 ;
@@ -28,29 +27,30 @@
 #X obj 75 86 + 1;
 #X obj 100 86 mod 2;
 #X obj 50 108 moses 1;
-#X obj 49 197 s hip_amt;
-#X msg 123 130 1500 5000;
-#X msg 50 152 18000 5000;
-#X obj 123 175 line;
-#X obj 123 197 s lop_amt;
-#X msg 123 152 4000 5000;
-#X connect 0 0 4 0;
-#X connect 1 0 9 0;
-#X connect 2 0 1 0;
-#X connect 3 0 5 0;
-#X connect 4 0 3 0;
+#X msg 119 130 18000 5000;
+#X obj 119 174 line;
+#X obj 119 196 s lop_amt;
+#X obj 50 196 s hip_amt;
+#X msg 50 130 4500 5000;
+#X msg 119 152 10000 5000;
+#X msg 50 152 800 5000;
+#X connect 0 0 3 0;
+#X connect 1 0 11 0;
+#X connect 2 0 4 0;
+#X connect 3 0 2 0;
+#X connect 4 0 5 0;
+#X connect 4 0 7 0;
 #X connect 5 0 6 0;
-#X connect 5 0 8 0;
-#X connect 6 0 7 0;
-#X connect 7 0 5 1;
-#X connect 8 0 2 0;
-#X connect 8 0 11 0;
-#X connect 8 1 10 0;
-#X connect 8 1 14 0;
-#X connect 10 0 1 0;
-#X connect 11 0 12 0;
-#X connect 12 0 13 0;
-#X connect 14 0 12 0;
+#X connect 6 0 4 1;
+#X connect 7 0 12 0;
+#X connect 7 0 8 0;
+#X connect 7 1 14 0;
+#X connect 7 1 13 0;
+#X connect 8 0 9 0;
+#X connect 9 0 10 0;
+#X connect 12 0 1 0;
+#X connect 13 0 9 0;
+#X connect 14 0 1 0;
 #X restore 525 -158 pd filter_mod;
 #N canvas 0 0 959 669 tanh_tabwrite 0;
 #X obj 498 115 t b b;
@@ -117,7 +117,7 @@
 #X restore 520 -136 pd tanh_tabwrite;
 #X obj 510 -4 catch~ zone_synth_bus;
 #X obj 511 18 /~ 32;
-#N canvas 381 144 450 630 hue_routing 0;
+#N canvas 1137 179 450 630 hue_routing 0;
 #X obj 26 15 r zone_hue;
 #X obj 26 36 unpack f f f f f f f f f f f f f f f f;
 #X obj 26 59 s hue1;
@@ -404,7 +404,7 @@
 #X obj 245 163 zone_synth;
 #X obj 366 161 zone_synth;
 #X obj 510 58 *~;
-#X obj 447 58 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+#X obj 447 58 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
 1;
 #X obj 447 36 r zone_go;
 #X connect 0 0 13 0;
