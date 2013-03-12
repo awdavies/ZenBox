@@ -3,18 +3,18 @@
 #X obj 523 126 simplereverb;
 #X obj 604 143 tabwrite~ wavout;
 #X obj 604 121 metro 100;
-#X obj 604 101 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+#X obj 604 101 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
 1;
 #N canvas 0 0 450 300 (subpatch) 0;
 #X array wavout 100 float 0;
 #X coords 0 1 99 -1 200 140 1;
 #X restore 510 -328 graph;
 #X obj 561 42 vsl 15 30 800 4500 0 0 empty empty empty 0 -9 0 10 -262144
--1 -1 1496 1;
+-1 -1 2900 1;
 #X obj 561 18 r hip_amt;
 #X obj 581 40 r lop_amt;
 #X obj 581 64 vsl 15 30 10000 18000 0 0 empty empty empty 0 -9 0 10
--262144 -1 -1 1496 1;
+-262144 -1 -1 2900 1;
 #X obj 524 102 lop~ 10000;
 #X obj 510 80 hip~ 1500;
 #N canvas 173 368 450 300 filter_mod 0;
@@ -404,7 +404,7 @@
 #X obj 245 163 zone_synth;
 #X obj 366 161 zone_synth;
 #X obj 510 58 *~;
-#X obj 447 58 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+#X obj 447 58 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
 1;
 #X obj 447 36 r zone_go;
 #X connect 0 0 13 0;
@@ -489,9 +489,9 @@
 #X connect 84 0 116 3;
 #X connect 85 0 116 4;
 #X connect 86 0 91 0;
-#X connect 87 0 91 2;
-#X connect 88 0 91 3;
-#X connect 89 0 91 1;
+#X connect 87 0 91 1;
+#X connect 88 0 91 2;
+#X connect 89 0 91 3;
 #X connect 90 0 91 4;
 #X connect 92 0 117 0;
 #X connect 93 0 117 1;
