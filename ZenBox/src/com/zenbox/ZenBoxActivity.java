@@ -45,8 +45,14 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	
 	private int mSampleCount;
 	
+	// Tells whether zoning of the image is enabled.
+	private boolean mZoneEnabled;
+	
 	// The audio manager member.
 	private AudioMessenger mAudioMsgr;
+	
+	// The zone processing member.
+	private ZoneProcessor mZoneProcessor;
 	
 	// The main Rgba matrix.
 	private Mat mRgba;
@@ -106,6 +112,8 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		volumeListener(vol);
 
 		mAudioMsgr = AudioMessenger.getInstance(this); // should start the sound up
+		mZoneProcessor = ZoneProcessor.getInstance();
+		mZoneEnabled = false;
 		mAudioMsgr.sendSetFileName(getResources().getStringArray(
 				R.array.sample_file_list)[0]);
 	}
@@ -176,9 +184,11 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 					int pos, long id) {
 				Spinner sample_spinner = (Spinner) findViewById(R.id.sample_list_spinner);
 				
+				// Only turn on the zoning synth when the appropriate menu setting is enabled.
+				mZoneEnabled = (pos != 0);
+				
 				// The granular synth is chosen
 				if (pos == 0) {
-					
 					// If the selected sample isn't the "no sample", activate the granular synth
 					mAudioMsgr.setGranularIsActive(
 							sample_spinner.getSelectedItemPosition() != mSampleCount);
@@ -232,6 +242,13 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	 */
 	@Override
 	public Mat onCameraFrame(Mat inputFrame) {
+		if (mZoneEnabled)
+			return mZoneProcessor.processZones(inputFrame);
+		else
+			return granularSynth(inputFrame);
+	}
+	
+	private Mat granularSynth(Mat inputFrame) {
 		// Grab a frame and process it with the object detector.
 		inputFrame.copyTo(mRgba);
 
