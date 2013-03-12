@@ -100,7 +100,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		sampleSpinnerListener(sample_spinner);
 		
 		Spinner synth_spinner = (Spinner) findViewById(R.id.synth_type_spinner);
-		sampleSpinnerListener(synth_spinner);
+		synthSpinnerListener(synth_spinner);
 
 		SeekBar vol = (SeekBar) findViewById(R.id.volume);
 		volumeListener(vol);
