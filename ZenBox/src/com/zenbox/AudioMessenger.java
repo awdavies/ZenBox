@@ -138,6 +138,14 @@ public class AudioMessenger {
 		return PdBase.sendMessage("setfilename", "read", new Object[] {
 				"-resize", fileName, "source-array" });
 	}
+	
+	public int setGranularIsActive(boolean active) {
+		return sendFloat("gr_go", active ? 1.0f : 0.0f);
+	}
+	
+	public int setZoneIsActive(boolean active) {
+		return sendFloat("zone_go", active ? 1.0f : 0.0f);
+	}
 
 	/**
 	 * Cleans up the audio messenger. To be called upon exiting the activity.
@@ -188,10 +196,16 @@ public class AudioMessenger {
 			patch = registerResource(R.raw.main, PD, res);
 			registerResource(R.raw.grain, PD, res);
 			registerResource(R.raw.grainvoice, PD, res);
-			registerResource(R.raw.simplereverb, PD, res);
+			
 			registerResource(R.raw.velocity_synth, PD, res);
 			registerResource(R.raw.velocity_synth1, PD, res);
 			registerResource(R.raw.string, PD, res);
+			
+			registerResource(R.raw.zone_synth_main, PD, res);
+			registerResource(R.raw.zone_synth, PD, res);
+			
+			registerResource(R.raw.simplereverb, PD, res);
+			registerResource(R.raw.vdrunk, PD, res);
 
 			registerResource(R.raw.vowels, WAV, res);
 			registerResource(R.raw.violin, WAV, res);
@@ -217,7 +231,4 @@ public class AudioMessenger {
 	public static float normalize(float in, float oMax, float oMin, float inMax) {
 		return oMin + in * (oMax - oMin) / inMax;
 	}
-	
-	// Native method for finding optical flow within the image.
-	public native void OpticalFlow();
 }

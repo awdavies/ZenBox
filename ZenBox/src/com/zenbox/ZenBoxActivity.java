@@ -96,8 +96,11 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		
 		mSampleCount = getResources().getStringArray(R.array.sample_file_list).length;
 
-		Spinner spinner = (Spinner) findViewById(R.id.spinner);
-		spinnerListener(spinner);
+		Spinner sample_spinner = (Spinner) findViewById(R.id.sample_list_spinner);
+		sampleSpinnerListener(sample_spinner);
+		
+		Spinner synth_spinner = (Spinner) findViewById(R.id.synth_type_spinner);
+		sampleSpinnerListener(synth_spinner);
 
 		SeekBar vol = (SeekBar) findViewById(R.id.volume);
 		volumeListener(vol);
@@ -135,7 +138,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	/*
 	 * get the file and change the sound sample
 	 */
-	private void spinnerListener(Spinner spinner) {
+	private void sampleSpinnerListener(Spinner spinner) {
 
 		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
@@ -151,6 +154,40 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 					mAudioMsgr.sendSetFileName(getResources().getStringArray(
 							R.array.sample_file_list)[pos]);
 					mAudioMsgr.sendFloat("gr_go", 1.0f);
+				}
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+			}
+		});
+	}
+	
+	/*
+	 * get the file and change the sound sample
+	 */
+	private void synthSpinnerListener(Spinner spinner) {
+
+		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+			// Select file from spinner
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View view,
+					int pos, long id) {
+				Spinner sample_spinner = (Spinner) findViewById(R.id.sample_list_spinner);
+				
+				// The granular synth is chosen
+				if (pos == 0) {
+					
+					// If the selected sample isn't the "no sample", activate the granular synth
+					mAudioMsgr.setGranularIsActive(
+							sample_spinner.getSelectedItemPosition() != mSampleCount);
+					mAudioMsgr.setZoneIsActive(false);
+					sample_spinner.setEnabled(true);
+				} else {
+					mAudioMsgr.setGranularIsActive(false);
+					mAudioMsgr.setZoneIsActive(true);
+					sample_spinner.setEnabled(true);
 				}
 			}
 
