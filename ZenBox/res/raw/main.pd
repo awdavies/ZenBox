@@ -1,4 +1,4 @@
-#N canvas 685 55 784 1112 10;
+#N canvas 685 0 784 1004 10;
 #N canvas 0 0 342 418 limiter~ 0;
 #X obj 86 322 *~;
 #X obj 121 80 env~;
@@ -34,6 +34,7 @@
 #X obj 57 80 velocity_synth;
 #X obj 82 105 grain;
 #X obj 171 130 r volume;
+#X obj 55 51 zone_synth_main;
 #X connect 0 0 3 0;
 #X connect 0 1 2 0;
 #X connect 2 0 1 1;
@@ -44,3 +45,5 @@
 #X connect 5 1 0 1;
 #X connect 6 0 3 1;
 #X connect 6 0 2 1;
+#X connect 7 0 0 0;
+#X connect 7 1 0 1;
