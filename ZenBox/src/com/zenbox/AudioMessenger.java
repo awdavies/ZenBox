@@ -219,7 +219,7 @@ public class AudioMessenger {
 			String name = res.getString(R.string.app_name);
 
 			// -1 means use default, which should work for us.
-			pdService.initAudio(-1, -1, -1, -1);
+			pdService.initAudio(22050, -1, -1, -1);
 			pdService.startAudio(new Intent(act, ZenBoxActivity.class),
 					R.drawable.icon, name, name);
 			sendFloat("volume", 0.8f);

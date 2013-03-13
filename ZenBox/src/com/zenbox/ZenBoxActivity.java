@@ -242,9 +242,17 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	@Override
 	public Mat onCameraFrame(Mat inputFrame) {
 		if (mZoneEnabled)
-			return mZoneProcessor.processZones(inputFrame);
+			return additiveSynth(inputFrame);
 		else
 			return granularSynth(inputFrame);
+	}
+	
+	private Mat additiveSynth(Mat inputFrame) {
+		mZoneProcessor.processZones(inputFrame);
+		mAudioMsgr.sendList("zone_hue", (Object[]) mZoneProcessor.mHue);
+		mAudioMsgr.sendList("zone_sat", (Object[]) mZoneProcessor.mSat);
+		mAudioMsgr.sendList("zone_val", (Object[]) mZoneProcessor.mVal);
+		return inputFrame;
 	}
 	
 	private Mat granularSynth(Mat inputFrame) {
