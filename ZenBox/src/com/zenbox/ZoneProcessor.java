@@ -8,6 +8,8 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import android.util.Log;
+
 public class ZoneProcessor {
 	
 	private static final int GRID_SIZE = 4;
@@ -63,9 +65,10 @@ public class ZoneProcessor {
 		// Process avg HSV of each submat.
 		for (int i = 0; i < GRID_AREA; ++i) {
 			double[] hsv = Core.mean(mCells[i]).val;
-			mHue[i] = AudioMessenger.normalize((float) hsv[0], 3f, 0f, 255f);
-			mSat[i] = AudioMessenger.normalize((float) hsv[1], 10f, 0f, 255f);
-			mVal[i] = AudioMessenger.normalize((float) hsv[2], 1f, 0.2f, 255f);
+			Log.e("ZoneProcessor", "Hue: " + Double.toString(hsv[0]));
+			mHue[i] = (float) hsv[0];//AudioMessenger.normalize((float) hsv[0], 3f, 0f, 255f);
+			mSat[i] = (float) hsv[1];//AudioMessenger.normalize((float) hsv[1], 10f, 0f, 255f);
+			mVal[i] = (float) hsv[2];//AudioMessenger.normalize((float) hsv[2], 1f, 0.2f, 255f);
 		}
         return img;
 	}

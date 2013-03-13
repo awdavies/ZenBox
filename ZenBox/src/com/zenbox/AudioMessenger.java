@@ -206,6 +206,7 @@ public class AudioMessenger {
 			
 			registerResource(R.raw.simplereverb, PD, res);
 			registerResource(R.raw.vdrunk, PD, res);
+			registerResource(R.raw.vscale, PD, res);
 
 			registerResource(R.raw.vowels, WAV, res);
 			registerResource(R.raw.violin, WAV, res);
