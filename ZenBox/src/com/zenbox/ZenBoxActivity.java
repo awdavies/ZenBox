@@ -253,10 +253,14 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 				mPrevGray.getNativeObjAddr(),
 				mPrevFeatures.getNativeObjAddr(),
 				inputFrame.getNativeObjAddr());
-		mZoneProcessor.processZones(inputFrame, mPrevFeatures);
+		mZoneProcessor.processZones(inputFrame);
+		mZoneProcessor.setNumFeatures(inputFrame, mPrevFeatures);
+		
+		// Pipe the data over to the additive synth!
 		mAudioMsgr.sendList("zone_hue", (Object[]) mZoneProcessor.mHue);
 		mAudioMsgr.sendList("zone_sat", (Object[]) mZoneProcessor.mSat);
 		mAudioMsgr.sendList("zone_val", (Object[]) mZoneProcessor.mVal);
+		mAudioMsgr.sendList("zone_features", (Object[]) mZoneProcessor.mNumFeatures);
 		return inputFrame;
 	}
 	

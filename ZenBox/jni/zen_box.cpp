@@ -49,7 +49,7 @@ inline void draw_flow_vector(Mat *img) {
 static inline void draw_dots(const vector<KeyPoint> &points, Mat *img) {
 	for (uint32_t i = 0; i < points.size(); ++i) {
 		const KeyPoint& p = points[i];
-		circle(*img, Point(p.pt.x * 2, p.pt.y * 2), 1 0, Scalar(255, 255, 255, 255));
+		circle(*img, Point(p.pt.x * 2, p.pt.y * 2), 10, Scalar(255, 255, 255, 255));
 	}
 }
 
