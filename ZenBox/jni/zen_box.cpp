@@ -2,7 +2,7 @@
 
 // This is a terrible function that draws some arrows very poorly.  It also changes the global image
 // movement vector.
-static inline void draw_arrows(vector<Point2f> *p_cur, vector<Point2f> *p_prev, const vector<uchar> &status, Mat *img) {
+static inline void calc_flow_vector(vector<Point2f> *p_cur, vector<Point2f> *p_prev, const vector<uchar> &status, Mat *img) {
 	flow_vector_q = Point(0, 0);
 
 	//  This right here draws some arrows (poorly).
@@ -10,16 +10,19 @@ static inline void draw_arrows(vector<Point2f> *p_cur, vector<Point2f> *p_prev, 
 		if (status[i] == 0)
 			continue;
 
+		// Add the total to the vector sum.
 		Point2f q = (*p_cur)[i];
 		Point2f p = (*p_prev)[i];
+		Point vec(q.x - p.x, q.y - p.y);
+		flow_vector_q += vec;
+
+		if (!debug_enabled)
+			continue;
+
 		q *= 2;
 		p *= 2;
 		double angle = atan2(p.y - q.y, p.x - q.x);
 		double hyp = sqrt(pow(p.y - q.y, 2) + pow(p.x - q.x, 2));
-
-		// Add the total to the vector sum.
-		Point vec(q.x - p.x, q.y - p.y);
-		flow_vector_q += vec;
 
 		// Triple the length of the arrow!
 		q = Point2f(p.x - 3 * hyp * cos(angle), p.y - 3 * hyp * sin(angle));
@@ -46,8 +49,12 @@ inline void draw_flow_vector(Mat *img) {
 static inline void draw_dots(const vector<KeyPoint> &points, Mat *img) {
 	for (uint32_t i = 0; i < points.size(); ++i) {
 		const KeyPoint& p = points[i];
-		circle(*img, Point(p.pt.x * 4, p.pt.y * 4), 10, Scalar(255, 255, 255, 255));
+		circle(*img, Point(p.pt.x * 2, p.pt.y * 2), 10, Scalar(255, 255, 255, 255));
 	}
+}
+
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_ToggleDebug(JNIEnv*, jobject) {
+	debug_enabled = !debug_enabled;
 }
 
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_DetectFeatures(JNIEnv*,
@@ -67,7 +74,8 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_DetectFeatures(JNIEnv*,
 		DETECTOR.detect(grayImg, kp_buf);
 		KeyPoint::convert(kp_buf, p_buf);
 		*(Mat *) addrFeatures = Mat(p_buf);
-		draw_flow_vector(&frame);
+		if (debug_enabled)
+			draw_dots(kp_buf, &frame);
 }
 
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv* env,
@@ -92,6 +100,9 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv* env,
 	calcOpticalFlowPyrLK(prevGrayImg, curGrayImg, prevFeatures, predicted_buf,
 			status, error, Size(21, 21), FLOW_MAX_LEVEL, FLOW_TERM_CRITERIA, 0);
 	*(Mat *) addrPredictedFeatures = Mat(predicted_buf);  // store predicted features.
-	draw_arrows(&predicted_buf, &p_buf, status, &curImg);
-	draw_flow_vector(&curImg);
+
+	calc_flow_vector(&predicted_buf, &p_buf, status, &curImg);
+	if (debug_enabled) {
+		draw_flow_vector(&curImg);
+	}
 }

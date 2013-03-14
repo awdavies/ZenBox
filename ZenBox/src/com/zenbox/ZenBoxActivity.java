@@ -248,10 +248,19 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	}
 	
 	private Mat additiveSynth(Mat inputFrame) {
+		inputFrame.copyTo(mPrevRgba);
+		DetectFeatures(mPrevRgba.getNativeObjAddr(),
+				mPrevGray.getNativeObjAddr(),
+				mPrevFeatures.getNativeObjAddr(),
+				inputFrame.getNativeObjAddr());
 		mZoneProcessor.processZones(inputFrame);
+		mZoneProcessor.setNumFeatures(inputFrame, mPrevFeatures);
+		
+		// Pipe the data over to the additive synth!
 		mAudioMsgr.sendList("zone_hue", (Object[]) mZoneProcessor.mHue);
 		mAudioMsgr.sendList("zone_sat", (Object[]) mZoneProcessor.mSat);
 		mAudioMsgr.sendList("zone_val", (Object[]) mZoneProcessor.mVal);
+		mAudioMsgr.sendList("zone_features", (Object[]) mZoneProcessor.mNumFeatures);
 		return inputFrame;
 	}
 	
@@ -326,4 +335,6 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 			long addrCurMatGray, long addrPrevFeat, long addrCurFeat, int[] flowVector);
 	
 	public native void DetectFeatures(long addrImg, long addrGrayImg, long addrFeatures, long addrFrame);
+	
+	public native void ToggleDebug();
 }

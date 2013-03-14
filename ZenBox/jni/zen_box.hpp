@@ -43,6 +43,7 @@ static vector<Point2f> predicted_buf(MAX_FEATURES);
 static vector<uchar> status(MAX_FEATURES);
 static const Point flow_vector_p(320, 240);
 static Point flow_vector_q(0, 0);
+static bool debug_enabled = true;
 
 // Terminate optical flow after one of these events has occurred first.
 // We're not driving a robot car, so none of these values need to be
@@ -53,6 +54,11 @@ TermCriteria FLOW_TERM_CRITERIA(TermCriteria::COUNT + TermCriteria::EPS,
 #ifdef __cplusplus   // <--- for name mangling and such.
 extern "C" {
 #endif
+
+/**
+ * TODO: Document me properly!
+ */
+JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_ToggleDebug(JNIEnv*, jobject);
 
 /**
  * TODO: Document me properly!
