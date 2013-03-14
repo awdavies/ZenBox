@@ -8,8 +8,8 @@
     <string name="file2">File2</string>
     <string name="other1">other1</string>
     <string name="drop_down_menu">click here</string>
-	<string name="sample_list">Sample List</string>
-	<string name="synth_type">Synth Type</string>
+	<string name="sample_list">Samples</string>
+	<string name="synth_type">Synths</string>
 	
     <string-array name="sample_file_list">
         <item>vowels</item>
