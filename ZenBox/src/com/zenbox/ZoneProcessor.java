@@ -81,13 +81,15 @@ public class ZoneProcessor {
 			mNumFeatures[i] = 0f;
 		}
 		
-		// Set the values for each square appropriately.
+		// Set the values for each square appropriately.  This is also a bit of a hack,
+		// as all of the points accrued through the image have been downsampled;  hence the
+		// *2 at the end of the x/y values.
 		Point[] points = features.toArray();
 		for (int i = 0; i < points.length; ++i) {
 			final Point p = points[i];
-			int x = ((int) p.x) / width;
-			int y = ((int) p.y) / height;
-			int k = x * GRID_WIDTH + y;
+			int x = (int) Math.floor((p.x * 2) / width);
+			int y = (int) Math.floor((p.y * 2) / height);
+			int k = y * GRID_WIDTH + x;
 			++mNumFeatures[k];
 		}
 		
