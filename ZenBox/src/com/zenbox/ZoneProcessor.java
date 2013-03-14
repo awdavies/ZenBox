@@ -57,7 +57,7 @@ public class ZoneProcessor {
 	 * @param img
 	 * @return The image (for now) with numbers drawn on each cell.
 	 */
-	public synchronized Mat processZones(Mat img) {
+	public synchronized Mat processZones(Mat img, MatOfPoint2f features) {
 		Imgproc.cvtColor(img, mHSV, Imgproc.COLOR_RGB2HSV_FULL);
 		int rows = img.rows();
 		int cols = img.cols();
@@ -70,15 +70,9 @@ public class ZoneProcessor {
 			mSat[i] = (float) hsv[1];//AudioMessenger.normalize((float) hsv[1], 10f, 0f, 255f);
 			mVal[i] = (float) hsv[2];//AudioMessenger.normalize((float) hsv[2], 1f, 0.2f, 255f);
 		}
+		
+		// TODO: Get the total location of all features for each section of the grid.  Algorithm
+		// should be general!
         return img;
-	}
-	
-	/**
-	 * Processes the location of all features, assigning a number of features to each grid that contains a 
-	 * feature.
-	 * @param features  The locations of the features as a series of points.
-	 */
-	public synchronized void processFeatures(MatOfPoint2f features) {
-		// TODO: Process features.
 	}
 }
