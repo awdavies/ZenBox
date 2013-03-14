@@ -331,4 +331,6 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 			long addrCurMatGray, long addrPrevFeat, long addrCurFeat, int[] flowVector);
 	
 	public native void DetectFeatures(long addrImg, long addrGrayImg, long addrFeatures, long addrFrame);
+	
+	public native void ToggleDebug();
 }
