@@ -1,11 +1,9 @@
 package com.zenbox;
 
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import android.util.Log;
@@ -15,7 +13,6 @@ public class ZoneProcessor {
 	private static final int GRID_WIDTH = 4;
 	private static final int GRID_HEIGHT = 4;
 	private static final int GRID_AREA = GRID_WIDTH * GRID_HEIGHT;
-	private static final String TAG = "ZoneProcessor";
 	
 	// Buffers for the number of features in each zone, as well
 	// as the overall HSV of the zone.
@@ -24,8 +21,16 @@ public class ZoneProcessor {
 	public Float[] mSat;
 	public Float[] mVal;
 	
+	// Buffers that allow us to call the native batch method.
+	// this is here so the floats can be copied to the float object array,
+	// which in turn is passable to the audio messenger.  Ugly? Yes.  Fast?  Doubly so!
+	private float[] mHueBuf;
+	private float[] mSatBuf;
+	private float[] mValBuf;
+	
 	// The cells for each frame.  One frame fills a cell.
 	private Mat[] mCells;
+	private long[] mCellAddrs;
 	
 	// Intermediate matrix for image manipulation.
 	private Mat mHSV;
@@ -35,7 +40,11 @@ public class ZoneProcessor {
 		mHue = new Float[GRID_AREA];
 		mSat = new Float[GRID_AREA];
 		mVal = new Float[GRID_AREA];
+		mHueBuf = new float[GRID_AREA];
+		mSatBuf = new float[GRID_AREA];
+		mValBuf = new float[GRID_AREA];
 		mCells = new Mat[GRID_AREA];
+		mCellAddrs = new long[GRID_AREA];
 		
 
 		mHSV = new Mat(height, width, CvType.CV_8UC3);
@@ -48,6 +57,9 @@ public class ZoneProcessor {
 						(i + 1) * mHSV.rows() / GRID_HEIGHT,
 						j * mHSV.cols() / GRID_WIDTH,
 						(j + 1) * mHSV.cols() / GRID_WIDTH);
+				
+				// Init each cell address.
+				mCellAddrs[k] = mCells[k].getNativeObjAddr();
 			}
 		}
 	}
@@ -60,18 +72,17 @@ public class ZoneProcessor {
 	 */
 	public synchronized Mat processZones(Mat img) {
 		Imgproc.cvtColor(img, mHSV, Imgproc.COLOR_RGB2HSV_FULL);
-		// Process avg HSV of each submat.
+		AvgHSVBatch(mCellAddrs, mHueBuf, mSatBuf, mValBuf, GRID_AREA);
 		for (int i = 0; i < GRID_AREA; ++i) {
-			double[] hsv = Core.mean(mCells[i]).val;
-			Log.e("ZoneProcessor", "Hue: " + Double.toString(hsv[0]));
-			mHue[i] = (float) hsv[0];
-			mSat[i] = (float) hsv[1];
-			mVal[i] = (float) hsv[2];
+			Log.i("ZoneProcessor", "Hue: " + mHueBuf[i]);
+			mHue[i] = mHueBuf[i];
+			mSat[i] = mSatBuf[i];
+			mVal[i] = mValBuf[i];
 		}
         return img;
 	}
 	
-	public void setNumFeatures(Mat img, MatOfPoint2f features) {
+	public synchronized void setNumFeatures(Mat img, MatOfPoint2f features) {
 		// (little hacky), get the total width and height of each one of the columns.
 		int width = mCells[0].width();
 		int height = mCells[0].height();
@@ -92,19 +103,9 @@ public class ZoneProcessor {
 			int k = y * GRID_WIDTH + x;
 			++mNumFeatures[k];
 		}
-		
-		// Super slow, but we need to debug!
-		Imgproc.cvtColor(mHSV, mHSV, Imgproc.COLOR_HSV2RGB_FULL);
-		for (int i = 0; i < mNumFeatures.length; ++i) {
-			Core.putText(mCells[i],
-					String.format("%2.0f", mNumFeatures[i]),
-					new Point(10, 40),
-                    3/* CV_FONT_HERSHEY_COMPLEX */,
-                    1,
-                    new Scalar(255, 0, 255, 255),
-                    2);
-		}
-		mHSV.copyTo(img);
-		Imgproc.cvtColor(mHSV, mHSV, Imgproc.COLOR_RGB2HSV_FULL);
 	}
+	
+	// Native method for getting avg of each cell, because 16+ native calls are slow as
+	// frozen tar....
+	public native void AvgHSVBatch(long[] cellAddrs, float[] hAvg, float[] sAvg, float[] vAvg, long len);
 }

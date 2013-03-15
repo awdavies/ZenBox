@@ -58,6 +58,12 @@ extern "C" {
 /**
  * TODO: Document me properly!
  */
+JNIEXPORT void JNICALL Java_com_zenbox_ZoneProcessor_AvgHSVBatch(JNIEnv* env, jobject,
+		jlongArray cellAddrs, jfloatArray hAvg, jfloatArray sAvg, jfloatArray vAvg, jlong len);
+
+/**
+ * TODO: Document me properly!
+ */
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_ToggleDebug(JNIEnv*, jobject);
 
 /**

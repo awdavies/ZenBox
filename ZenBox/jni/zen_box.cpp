@@ -53,6 +53,25 @@ static inline void draw_dots(const vector<KeyPoint> &points, Mat *img) {
 	}
 }
 
+JNIEXPORT void JNICALL Java_com_zenbox_ZoneProcessor_AvgHSVBatch(JNIEnv* env, jobject,
+		jlongArray cellAddrs, jfloatArray hAvg, jfloatArray sAvg, jfloatArray vAvg, jlong len) {
+	jlong *cells = env->GetLongArrayElements(cellAddrs, NULL);
+	float *h = env->GetFloatArrayElements(hAvg, NULL);
+	float *s = env->GetFloatArrayElements(sAvg, NULL);
+	float *v = env->GetFloatArrayElements(vAvg, NULL);
+	for (long i = 0; i < len; ++i) {
+		Mat &m = *(Mat *) cells[i];
+		Scalar hsvMean = mean(m);
+		h[i] = hsvMean.val[0];
+		s[i] = hsvMean.val[1];
+		v[i] = hsvMean.val[2];
+	}
+	env->ReleaseLongArrayElements(cellAddrs, cells, 0);
+	env->ReleaseFloatArrayElements(hAvg, h, 0);
+	env->ReleaseFloatArrayElements(sAvg, s, 0);
+	env->ReleaseFloatArrayElements(vAvg, v, 0);
+}
+
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_ToggleDebug(JNIEnv*, jobject) {
 	debug_enabled = !debug_enabled;
 }
@@ -92,6 +111,7 @@ JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv* env,
 	nativeFlowVector = env->GetIntArrayElements(flowVector, NULL);
 	nativeFlowVector[0] = flow_vector_q.x;
 	nativeFlowVector[1] = flow_vector_q.y;
+	env->ReleaseIntArrayElements(flowVector, nativeFlowVector, 0);
 
 	// Detect the features of the previous image, then predict the location
 	// on the next image.
