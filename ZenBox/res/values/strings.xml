@@ -11,7 +11,8 @@
 	<string name="sample_list">Samples</string>
 	<string name="synth_type">Synths</string>
 	<string name="volume">Volume</string>
-	
+	<string name="debug_cv">Debug CV?</string>
+
     <string-array name="sample_file_list">
         <item>vowels</item>
         <item>violin</item>
@@ -29,7 +30,7 @@
         <item>Synth</item>
         <item>No Sample</item>
     </string-array>
-    
+
     <string-array name="synth_type_list">
         <item>Granular Synth</item>
         <item>Additive Synth</item>

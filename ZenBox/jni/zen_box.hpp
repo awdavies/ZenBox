@@ -43,7 +43,7 @@ static vector<Point2f> predicted_buf(MAX_FEATURES);
 static vector<uchar> status(MAX_FEATURES);
 static const Point flow_vector_p(320, 240);
 static Point flow_vector_q(0, 0);
-static bool debug_enabled = true;
+static bool debug_enabled = false;
 
 // Terminate optical flow after one of these events has occurred first.
 // We're not driving a robot car, so none of these values need to be

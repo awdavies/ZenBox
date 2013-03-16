@@ -18,42 +18,45 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 
 public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	// tag for this class
 	private static final String TAG = "ZenBox::Activity";
-	
+
 	private static final Size IMAGE_SIZE = new Size(640, 480);
-	
+
 	// open CV camera
 	private CameraBridgeViewBase mOpenCvCameraView;
-	
+
 	private int mFrames = 0; // the number of frames passed.
-	
+
 	// Feature detector goodies.
 	private MatOfPoint2f mFeatures;
 	private MatOfPoint2f mPrevFeatures;
-	
+
 	// Pyramid matrices for optical flow detection.
 	private Mat mPrevPyr;
 	private Mat mCurPyr;
-	
+
 	// The average flow vector
 	private int[] mFlowVector;
-	
+
 	private int mSampleCount;
-	
+
 	// Tells whether zoning of the image is enabled.
 	private boolean mZoneEnabled;
-	
+
 	// The audio manager member.
 	private AudioMessenger mAudioMsgr;
-	
+
 	// The zone processing member.
 	private ZoneProcessor mZoneProcessor;
-	
+
 	// The main Rgba matrix.
 	private Mat mRgba;
 	private Mat mPrevRgba;
@@ -99,12 +102,15 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.activity_zen_box_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
-		
+
+		CheckBox debugBox = (CheckBox) findViewById(R.id.debug_check_box);
+		debugBoxListener(debugBox);
+
 		mSampleCount = getResources().getStringArray(R.array.sample_file_list).length;
 
 		Spinner sample_spinner = (Spinner) findViewById(R.id.sample_list_spinner);
 		sampleSpinnerListener(sample_spinner);
-		
+
 		Spinner synth_spinner = (Spinner) findViewById(R.id.synth_type_spinner);
 		synthSpinnerListener(synth_spinner);
 
@@ -182,10 +188,10 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 			public void onItemSelected(AdapterView<?> parent, View view,
 					int pos, long id) {
 				Spinner sample_spinner = (Spinner) findViewById(R.id.sample_list_spinner);
-				
+
 				// Only turn on the zoning synth when the appropriate menu setting is enabled.
 				mZoneEnabled = (pos != 0);
-				
+
 				// The granular synth is chosen
 				if (pos == 0) {
 					// If the selected sample isn't the "no sample", activate the granular synth
@@ -202,6 +208,16 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 
 			@Override
 			public void onNothingSelected(AdapterView<?> arg0) {
+			}
+		});
+	}
+
+	private void debugBoxListener(CheckBox debugBox) {
+		debugBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				ToggleDebug();
 			}
 		});
 	}
@@ -247,7 +263,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		else
 			return granularSynth(inputFrame);
 	}
-	
+
 	private Mat additiveSynth(Mat inputFrame) {
 		inputFrame.copyTo(mPrevRgba);
 		DetectFeatures(mPrevRgba.getNativeObjAddr(),
@@ -256,7 +272,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 				inputFrame.getNativeObjAddr());
 		mZoneProcessor.processZones(inputFrame);
 		mZoneProcessor.setNumFeatures(inputFrame, mPrevFeatures);
-		
+
 		// Pipe the data over to the additive synth!
 		mAudioMsgr.sendList("zone_hue", (Object[]) mZoneProcessor.mHue);
 		mAudioMsgr.sendList("zone_sat", (Object[]) mZoneProcessor.mSat);
@@ -264,7 +280,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		mAudioMsgr.sendList("zone_features", (Object[]) mZoneProcessor.mNumFeatures);
 		return inputFrame;
 	}
-	
+
 	private Mat granularSynth(Mat inputFrame) {
 		// Grab a frame and process it with the object detector.
 		inputFrame.copyTo(mRgba);
@@ -278,7 +294,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		mAudioMsgr.sendFloat("grainstart_in", grainstart);
 		mAudioMsgr.sendFloat("graindur_in", graindur);
 		mAudioMsgr.sendFloat("grainpitch_in", grainpitch);
-		
+
 		// Only detect movement every few frames.
 		if (mFrames == 1) {
 			inputFrame.copyTo(mRgba);
@@ -335,8 +351,8 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 	/////// native methods (documentation in zen_box.hpp ///////
 	public native void OpticalFlow(long addrCurMat, long addrPrevMatGray,
 			long addrCurMatGray, long addrPrevFeat, long addrCurFeat, int[] flowVector);
-	
+
 	public native void DetectFeatures(long addrImg, long addrGrayImg, long addrFeatures, long addrFrame);
-	
+
 	public native void ToggleDebug();
 }
