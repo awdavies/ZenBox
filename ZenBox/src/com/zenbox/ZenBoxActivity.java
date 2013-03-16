@@ -230,6 +230,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		mPrevRgba.release();
 		mFeatures.release();
 		mGray.release();
+		mZoneProcessor.cleanup();
 	}
 
 	/*
@@ -328,6 +329,7 @@ public class ZenBoxActivity extends Activity implements CvCameraViewListener {
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
 		mAudioMsgr.cleanup();
+		mZoneProcessor.cleanup();
 	}
 
 	/////// native methods (documentation in zen_box.hpp ///////

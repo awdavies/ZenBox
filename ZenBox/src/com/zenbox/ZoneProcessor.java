@@ -105,6 +105,13 @@ public class ZoneProcessor {
 		}
 	}
 	
+	/**
+	 * Cleans up resources used by the ZoneProcessor matrices.
+	 */
+	public void cleanup() {
+		mHSV.release();
+	}
+	
 	// Native method for getting avg of each cell, because 16+ native calls are slow as
 	// frozen tar....
 	public native void AvgHSVBatch(long[] cellAddrs, float[] hAvg, float[] sAvg, float[] vAvg, long len);
