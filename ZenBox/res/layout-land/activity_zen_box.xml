@@ -18,6 +18,7 @@
             android:id="@+id/textView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:contentDescription="@string/synth_type"
             android:text="@string/synth_type"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -25,6 +26,7 @@
             android:id="@+id/synth_type_spinner"
             android:layout_width="match_parent"
             android:layout_height="60dp"
+            android:contentDescription="@string/synth_type"
             android:entries="@array/synth_type_list"
             android:prompt="@string/synth_type" />
 
@@ -32,6 +34,7 @@
             android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:contentDescription="@string/sample_list"
             android:text="@string/sample_list"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -39,6 +42,7 @@
             android:id="@+id/sample_list_spinner"
             android:layout_width="match_parent"
             android:layout_height="60dp"
+            android:contentDescription="@string/sample_list"
             android:entries="@array/sample_name_list"
             android:prompt="@string/sample_list" />
 
@@ -50,12 +54,14 @@
                 android:id="@+id/speaker"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
+                android:contentDescription="@string/volume"
                 android:src="@drawable/speaker_icon" />
 
             <SeekBar
                 android:id="@+id/volume"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:contentDescription="@string/volume"
                 android:max="100" />
 
         </LinearLayout>

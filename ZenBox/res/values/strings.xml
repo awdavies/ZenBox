@@ -10,6 +10,7 @@
     <string name="drop_down_menu">click here</string>
 	<string name="sample_list">Samples</string>
 	<string name="synth_type">Synths</string>
+	<string name="volume">Volume</string>
 	
     <string-array name="sample_file_list">
         <item>vowels</item>

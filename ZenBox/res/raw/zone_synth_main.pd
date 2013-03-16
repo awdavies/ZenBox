@@ -3,7 +3,7 @@
 #X obj 523 126 simplereverb;
 #X obj 604 143 tabwrite~ wavout;
 #X obj 604 121 metro 100;
-#X obj 604 101 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+#X obj 604 101 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
 1;
 #N canvas 0 0 450 300 (subpatch) 0;
 #X array wavout 100 float 0;
@@ -209,8 +209,6 @@
 #X obj 46 -1 inlet trigger;
 #X msg 45 21 130.81 164.81 196 233.08 261.63 329.36 392 466.16 523.25
 659.26 783.99 932.33 1046.5 1318.5 1568 1867.7;
-#X msg 133 226 130.81 164.81 196 233.08 261.63 329.36 392 466.16 523.25
-659.26 783.99 932.33 1046.5 82.307 97.999 110;
 #X connect 0 0 1 0;
 #X connect 0 1 2 0;
 #X connect 0 2 3 0;
@@ -314,7 +312,7 @@
 #X obj 592 168 outlet~;
 #X obj 3 -228 zone_synth;
 #X obj 510 58 *~;
-#X obj 447 58 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+#X obj 447 58 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
 1;
 #X obj 447 36 r zone_go;
 #N canvas 270 152 467 448 features_routing 0;
