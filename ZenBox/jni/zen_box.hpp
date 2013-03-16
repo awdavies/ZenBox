@@ -56,25 +56,41 @@ extern "C" {
 #endif
 
 /**
- * TODO: Document me properly!
+ * Gets the average HSV of a group of cells within a larger cell.  Meant to
+ * speed up (if only slightly) the computation.  There are 'len' cells
+ * calculated, and the averages are subsequently stored in the hAvg, sAvg, vAvg
+ * arrays.
  */
 JNIEXPORT void JNICALL Java_com_zenbox_ZoneProcessor_AvgHSVBatch(JNIEnv* env, jobject,
 		jlongArray cellAddrs, jfloatArray hAvg, jfloatArray sAvg, jfloatArray vAvg, jlong len);
 
 /**
- * TODO: Document me properly!
+ * Toggles debugging in the native code.  This should be called in conjunction
+ * with whatever Java code that is intended to toggle debugging in the main
+ * activity.
  */
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_ToggleDebug(JNIEnv*, jobject);
 
 /**
- * TODO: Document me properly!
+ * Estimates the optical flow between two images.  Requires the current image,
+ * the previous and current matrices of the same size for storing the gray
+ * version of their respective images (for performance reasons), as well as
+ * an array of the currently detected features and a two element array for storing
+ * the subsequent flow vector calculated from the process.
+ *
+ * Warning: there is no parameter checking as of yet.
  */
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_OpticalFlow(JNIEnv*,
 		jobject, jlong addrCurMat, jlong addrPrevMatGray,
 		jlong addrCurMatGray, jlong addrPrevFeat, jlong addrCurFeat, jintArray flowVector);
 
 /**
- * TODO: Document me properly!
+ * Detects the features using a global feature checker.  Requires the address
+ * of the image in question, as well as the address of the gray matrix of the
+ * image (it doesn't need to be calculated, it's simply for storage).  After the
+ * features are calculated, they are stored in the address of the addrFeatures param.
+ *
+ * Any drawing will be done to the addrFrame matrix.
  */
 JNIEXPORT void JNICALL Java_com_zenbox_ZenBoxActivity_DetectFeatures(JNIEnv*,
 		jobject, jlong addrImg, jlong addrGrayImg, jlong addrFeatures, jlong addrFrame);
